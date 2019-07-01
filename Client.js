@@ -33,6 +33,8 @@ class Client {
         this.display = true;
         this.style = Client.style.TRADITIONAL;
 
+        this.rl = null;
+
         this.afterStartup = false;
 
         this.user = null;
@@ -63,12 +65,12 @@ class Client {
         if (this.doHandoff || this.id != null || this.doConnect)
             this.initiateUser();
 
-        let rl = readline.createInterface({
-        input: process.stdin,
+        this.rl = readline.createInterface({
+            input: process.stdin,
             output: process.stdout
         });
         
-        rl.on('line', (input) => {
+        this.rl.on('line', (input) => {
             if (input.trim() == "") return;
             if (input.startsWith("/-"))
                 this.command(input.slice(2));
@@ -76,7 +78,7 @@ class Client {
                 this.say(input);
         });
 
-        rl.on('SIGINT', () => {
+        let quit = () => {
             if (this.user && this.user.isConnected) {
                 this.command("disconnect").then(function() {
                     process.exit(0);
@@ -84,8 +86,11 @@ class Client {
             } else {
                 process.exit(0);
             }
-            rl.close();                
-        });
+            this.rl.close();                
+        };
+
+        this.rl.on('SIGINT', quit);
+        // this.rl.on('close', quit); // seems to not send "disconnect" on either close or SIGINT event, if this listener exists
 
         this.afterStartup = true;
     }
@@ -102,6 +107,9 @@ class Client {
     }
 
     initiateUser() {
+        if (this.user) // /-c called twice
+            return;
+
         this.user = new UserConnection(this);
 
         if (this.handoff) {
@@ -215,14 +223,21 @@ class Client {
         let time = pad("00", d.getUTCHours()) + ":" + pad("00", d.getUTCMinutes());
         let msg = time + " " + data;
         if (this.display)
-            console.log(msg);
+            this.logInner(msg);
         if (this.fileStream)
             this.fileStream.write(msg.replace(/\r?\n/g, "\r\n") + "\r\n");
     }
 
     logVerbose(ex) {
         if (this.verbose)
-            console.log(ex);
+            this.logInner(ex);
+    }
+
+    logInner(line) {
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+        console.log(line);
+        this.rl.prompt(true);
     }
 
     hear(data) {
