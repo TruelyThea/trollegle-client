@@ -18,7 +18,7 @@ class Client {
         this.doHandoff = false;
         this.doConnect = false;
         
-        this.lurkRate = Infinity;
+        this.lurkRate = 0;
         this.lurkMessages = ["/8"];
         this.lastLurk = 0;
         this.lurkTask = null;
@@ -193,7 +193,7 @@ class Client {
         // otherwise overflow and immediate execution of lurk function (well, on the next tick)
         if (wait > 0x7FFFFFFF) {
             clearTimeout(this.lurkTask);
-            this.log("Cannot schedule lurk because lurkrate is too long");
+            this.logVerbose("Cannot schedule lurk because lurkrate is too long");
             return;
         }
 

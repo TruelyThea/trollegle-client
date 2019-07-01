@@ -108,7 +108,12 @@ class ClientBehavior extends Behavior {
 
         this.addCommand("out", "/-out=!|path log the chat to the specified path (by appending or creation) `!` to remove the path and stop logging", 1, function(path) {
             if (this.fileStream) this.fileStream.end();
-            this.fileStream = path == "!" ? null : fs.createWriteStream(path, {flags:'a'});
+            let fStream = this.fileStream = path == "!" ? null : fs.createWriteStream(path, {flags:'a'});
+            fStream.on('error', (err) => {
+                this.fileStream = null;
+                this.log(err);
+                fStream.end();
+            });
         }, ["logpath", "output"]);
 
         this.addHiddenCommand("display", "/-display=on|off indicates whether repsonses appear in the terminal", 1, predAssign("display"));
