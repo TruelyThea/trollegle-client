@@ -134,7 +134,8 @@ class Client {
     }
 
     removeUser() {
-        this.user.dispose();
+        if (this.user)
+            this.user.dispose();
         this.user = null;
         this.qShown = false;
         clearTimeout(this.lurkTask);

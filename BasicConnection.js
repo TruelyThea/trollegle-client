@@ -38,7 +38,7 @@ class BasicConnection {
     }
 
     set topics(list) {
-        this.topicsArray = list.split(/\s*+\,\s*/);
+        this.topicsArray = list.split(/\s*\,\s*/);
     }
 
     establishChat() {
@@ -148,7 +148,7 @@ fronts[9].lastDirty = Infinity;
 function chooseFront() {
     let front = _.sample(fronts);
     if (front.isDirty()) {
-        front = _.min(fronts, "lastDirty")
+        front = _.min(fronts, "lastDirty");
     }
     return front.id;
 }
