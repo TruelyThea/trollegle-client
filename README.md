@@ -14,6 +14,10 @@ This client doesn't support tor circuits at the moment, but besides that it supp
 
 * control over display: display output in terminal or not, and display traditional (without `Stranger: `, and `You: ` replaced by `>`) versus verbose
 
+* `/-loadrc path` run commands from the file
+
+* `/-room room challenge password`, `/-enablelogin` useful with `/-loadrc` for login with `/-challenge`
+
 * a few other minor features
 
 ## Main Benefit ##

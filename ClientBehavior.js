@@ -204,7 +204,7 @@ class ClientBehavior extends Behavior {
         });
 
         this.addCommand("enablelogin", "/-enablelogin=true|false", 1, predAssign("enableLogin"), ["enable"]);
-        this.addCommand("room", "/-challenge room challenge password (add the triple to the challenge collection). useful with /-loadrc", 3, function(room, challenge, password) {
+        this.addCommand("room", "/-room room challenge password (add the triple to the challenge collection). useful with /-loadrc", 3, function(room, challenge, password) {
             this.rooms.push([room, challenge, password]);
         }, ["addroom", "challenge", "addchallenge"]);
 
