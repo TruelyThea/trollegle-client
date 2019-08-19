@@ -3,6 +3,7 @@ const {pad} = require("./Util");
 const ClientBehavior = require("./ClientBehavior");
 const UserConnection = require("./UserConnection");
 const readline = require("readline");
+const Sha1 = require("./Sha1");
 
 const INACTIVE_HUMAN = 13 * 59 * 1000;
 
@@ -32,6 +33,8 @@ class Client {
         this.fileStream = null;
         this.display = true;
         this.style = Client.style.TRADITIONAL;
+        this.enableLogin = true;
+        this.rooms = [];
 
         this.rl = null;
 
@@ -96,9 +99,11 @@ class Client {
     }
 
     command(data) {
+        // before startup also compatible with loadrc, given the command doesn't contain =
         let args = this.afterStartup ? data.split(/\s+/) : data.split(/\=|\s+/);
 
         try {
+            // note that behavior is not a function, so this isn't the call in Function.prototype
             return this.behavior.call(args[0], args.slice(1));
         } catch (ex) {
             this.logVerbose(ex);
@@ -168,8 +173,28 @@ class Client {
         // noop
     }
 
-    message(data) {
+    message(data) {    
         this.hear(data);
+
+        let parts = data.split(/ +/);
+        if (this.enableLogin && parts.length >= 5 && parts[1] == "Login" && parts[2] == "challenge:")
+            this.inspectChallenge(parts[3], parts[4]);
+    }
+
+    inspectChallenge(salt, challenge) { // essentially from https://bellawhiskey.ca/trollegle.user.js
+        var matching = this.rooms.filter((a) => Sha1.hash(salt + a[1]) == challenge);
+        if (matching.length) {
+            if (matching.length == 1) {
+                var a = matching[0];
+                this.log("This *seems* to be " + a[0]);
+                this.say("/password " + Sha1.hash(salt + a[2]));
+            } else {
+                this.log("More than one matching room found (" + matching.map((a) => a[0]).join(", ") +
+                        "). There might be something amiss in the settings.");
+            }
+        } else {
+            this.log("This doesn't look like a known room");
+        }
     }
 
     connected() {
@@ -195,23 +220,18 @@ class Client {
     }
 
     scheduleLurk() {
-        // `unsuccessfulSend` changes lurkRate and calls this to reschedule the lurk
+        clearTimeout(this.lurkTask); // okay even if lurkTask is null
+
+        // `unsuccessfulSend` changes lastLurk and calls this to reschedule the lurk
         // after calling `/-lurkrate` this is called to reschedule the lurk
         let wait = Math.max(0, this.lurkRate + this.lastLurk - Date.now());
-        // must be less than or equal to the max signed int, 
-        // otherwise overflow and immediate execution of lurk function (well, on the next tick)
-        if (wait > 0x7FFFFFFF) {
-            clearTimeout(this.lurkTask);
-            this.logVerbose("Cannot schedule lurk because lurkrate is too long");
-            return;
-        }
 
-        // okay even if lurkTask is null
-        clearTimeout(this.lurkTask);
-        // lurkRate == 0 => not scheduled
-        if (this.lurkRate > 0) {
+        // must be less than or equal to the max signed int, 
+        // otherwise would be overflow and immediate execution of lurk function (well, on the next tick)
+        if (wait > 0x7FFFFFFF)
+            this.logVerbose("Cannot schedule lurk because lurkrate is too long");
+        else if (this.lurkRate > 0) // lurkRate == 0 => not scheduled
             this.lurkTask = setTimeout(this.lurk.bind(this), wait);
-        }
     }
 
     lurk() {

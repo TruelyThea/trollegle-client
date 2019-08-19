@@ -6,7 +6,7 @@ let axios = require("axios").create({timeout: 30e3});
 
 function predAssign(value) {
     return function(predicate) {
-        this[value] = (/^(true|on)$/i.test(predicate));
+        this[value] = (/^(true|on|1|yes|y)$/i.test(predicate));
     };
 }
 
@@ -45,7 +45,6 @@ class ClientBehavior extends Behavior {
             return help.trim();
         };
 
-        // todo load command files
         this.addHiddenCommand("help", "/-help [full|words...] : displays command help.\n" + 
             "    Note that command help is sometimes listed as /-cmd=value.\n" +
             "    This is the notation for command-line arguments;\n" +
@@ -83,6 +82,7 @@ class ClientBehavior extends Behavior {
                 rate *= 1000;
             this.lurkRate = rate;
             this.scheduleLurk();
+            this.logVerbose("Setting lurkrate to " + rate + "ms.")
         });
 
         this.addCommand("lurkmsg", "/-lurkmsg=1|2 sets pipe-separated lurk messages (default /8)", 1, function() {
@@ -109,12 +109,36 @@ class ClientBehavior extends Behavior {
         this.addCommand("out", "/-out=!|path log the chat to the specified path (by appending or creation) `!` to remove the path and stop logging", 1, function(path) {
             if (this.fileStream) this.fileStream.end();
             let fStream = this.fileStream = path == "!" ? null : fs.createWriteStream(path, {flags:'a'});
-            fStream.on('error', (err) => {
-                this.fileStream = null;
-                this.log(err);
-                fStream.end();
-            });
+            if (fStream)
+                fStream.on('error', (err) => {
+                    this.fileStream = null;
+                    this.log(err);
+                    this.log("the file output has been stopped.");
+                    fStream.end();
+                });
         }, ["logpath", "output"]);
+
+        this.addCommand("loadrc", "/-loadrc=[FILE] Run commands/ say messages from the FILE. Beware of recursion! # designates comment in file", 0, function(path) {
+            path = path || ".multirc";
+            fs.readFile(path, "utf8", (ex, data) => {
+                if (ex) {
+                    this.log("Could not load the rc file.");
+                    this.logVerbose(ex);
+                } else {
+                    data.split(/\r\n|\n/).forEach(function(command) {
+                        if (command.trim() == "") return;
+                        if (command.startsWith("/-"))
+                            this.command(command.slice(2));
+                        else if (!command.startsWith("#"))
+                            this.say(command);
+                    }, this);
+                }
+            });
+        }, ["load"]);
+
+        this.addHiddenCommand("log", "/-log=<text> Log the text", 0, function() {
+            this.log(Array.prototype.join.call(arguments, " "));
+        }, ["tell"]);
 
         this.addHiddenCommand("display", "/-display=on|off indicates whether repsonses appear in the terminal", 1, predAssign("display"));
 
@@ -178,6 +202,11 @@ class ClientBehavior extends Behavior {
                 });
             });
         });
+
+        this.addCommand("enablelogin", "/-enablelogin=true|false", 1, predAssign("enableLogin"), ["enable"]);
+        this.addCommand("room", "/-challenge room challenge password (add the triple to the challenge collection). useful with /-loadrc", 3, function(room, challenge, password) {
+            this.rooms.push([room, challenge, password]);
+        }, ["addroom", "challenge", "addchallenge"]);
 
     }
 
