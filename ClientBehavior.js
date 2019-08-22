@@ -106,8 +106,24 @@ class ClientBehavior extends Behavior {
             // log(user.killAndSave());
         });
 
-        this.addCommand("out", "/-out=!|path log the chat to the specified path (by appending or creation) `!` to remove the path and stop logging", 1, function(path) {
+        
+        function formatDate(date) { // from https://stackoverflow.com/questions/23593052/format-javascript-date-to-yyyy-mm-dd
+            var d = new Date(date),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+        
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+        
+            return [year, month, day].join('-');
+        }
+
+        this.addCommand("out", "/-out=!|path log the chat to the specified path (by appending or creation)\n" +
+            "    `!` to remove the path and stop logging\n" +
+            "    :today: will be replaced by yyyy-mm-dd", 1, function(path) {
             if (this.fileStream) this.fileStream.end();
+            path = path.replace(/:today:/gi, formatDate(Date.now()));
             let fStream = this.fileStream = path == "!" ? null : fs.createWriteStream(path, {flags:'a'});
             if (fStream)
                 fStream.on('error', (err) => {
@@ -118,14 +134,36 @@ class ClientBehavior extends Behavior {
                 });
         }, ["logpath", "output"]);
 
-        this.addCommand("loadrc", "/-loadrc=[FILE] Run commands/ say messages from the FILE. Beware of recursion! # designates comment in file", 0, function(path) {
-            path = path || ".multirc";
+        this.addCommand("loadrc", "/-loadrc=[FILE]?<querystring> Run commands/ say messages from the FILE. Beware of recursion!\n" +
+            "    no argument defaults file .multirc\n" +
+            "    `#` at the start of a line designates a comment in file\n" +
+            "    optionally a query string ?key=value&key2=value2... will fill\n" +
+            "        :key: to value in each command; keys must only consist of alphanumeric characters", 0, function() {
+            var path = Array.prototype.join.call(arguments, "=") || ".multirc";
+            var keys = {
+                "colon": ":",
+                "_": ":"
+            };
+
+            var index = path.indexOf("?");
+            if (index > 0) {
+                _.extend(keys, require("querystring").parse(path.slice(index + 1)));
+                path = path.slice(0, index);
+            }
+
+            var isKey = new RegExp("\:(" + Object.keys(keys).filter(function(key) {
+                return /^\w+$/.test(key);
+            }).join("|") + ")\:", "gi");
+
             fs.readFile(path, "utf8", (ex, data) => {
                 if (ex) {
                     this.log("Could not load the rc file.");
                     this.logVerbose(ex);
                 } else {
                     data.split(/\r\n|\n/).forEach(function(command) {
+                        command = command.replace(isKey, function(match) {
+                            return keys[match.slice(1,-1)];
+                        });
                         if (command.trim() == "") return;
                         if (command.startsWith("/-"))
                             this.command(command.slice(2));

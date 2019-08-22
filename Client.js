@@ -50,29 +50,12 @@ class Client {
         return new ClientBehavior(this);
     }
 
-    run() {
-        this.accepted = false;
-        this.qShown = false;
-        this.args.forEach(function(arg) {
-            if (arg.startsWith("-"))
-                this.command(arg.slice(1));
-        }, this);
-
-        let topics = this.args.filter(function(arg) {
-            return !arg.startsWith("-");
-        });
-
-        if (topics.length > 0)
-            this.topicsArray = this.topicsArray ? this.topicsArray.concat(topics) : topics;
-        
-        if (this.doHandoff || this.id != null || this.doConnect)
-            this.initiateUser();
-
+    setupRL() {
         this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
         });
-        
+
         this.rl.on('line', (input) => {
             if (input.trim() == "") return;
             if (input.startsWith("/-"))
@@ -94,6 +77,27 @@ class Client {
 
         this.rl.on('SIGINT', quit);
         // this.rl.on('close', quit); // seems to not send "disconnect" on either close or SIGINT event, if this listener exists
+    }
+
+    run() {
+        this.setupRL();
+
+        this.accepted = false;
+        this.qShown = false;
+        this.args.forEach(function(arg) {
+            if (arg.startsWith("-"))
+                this.command(arg.slice(1));
+        }, this);
+
+        let topics = this.args.filter(function(arg) {
+            return !arg.startsWith("-");
+        });
+
+        if (topics.length > 0)
+            this.topicsArray = this.topicsArray ? this.topicsArray.concat(topics) : topics;
+        
+        if (this.doHandoff || this.id != null || this.doConnect)
+            this.initiateUser();
 
         this.afterStartup = true;
     }
