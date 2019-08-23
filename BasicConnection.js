@@ -14,7 +14,21 @@ const _ = require("underscore");
     After a little reading, I leaned that that fact about no timeout on request.
     This is an example of a *tiny* bug that took a couple hours to solve.
 */
-const axios = require("axios").create({timeout: 30e3});
+
+/*
+    Ugh, new bugfix regarding that timeout!
+    It seems that the site will replace the old request for events with new request for events.
+        However, then it resets the timeout on the server, which seems to be one minute
+    after one minute it will send empty events [] and succeed
+        however, before I had a timeout of 30 seconds, after which I would try again to request events.
+        So, I never allowed the empty events to send, and after six fails it would give up.
+    So if you were in a very slow chat, your connection might have died because:
+        for three or so consecutive minutes no new events were available
+    Now the timeout is 62 seconds, which hopefully allows the empty events to send; (this is what the site itself uues)
+    Hopefully, this persistent bug is resolved once and for all.
+*/
+
+const axios = require("axios").create({timeout: 62e3});
 const SocksProxyAgent = require("socks-proxy-agent");
 
 const {headers, makeRandid, retry} = require("./Util");

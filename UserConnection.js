@@ -177,12 +177,15 @@ class UserConnection extends BasicConection {
                     setTimeout(_handleEvents, 200);
             }.bind(this)).catch(function(ex) {
                 this.isConnected = false;
-                if (this.client.user == this) // could be a fail from a old timedout request, after already disconnected formally)
+                // could be a fail from a old timedout request, after already disconnected formally)
+                // so if this is the current user:
+                if (this.client.user == this) { 
                     this.client.died(ex.message);
-                if (this.client.verbose) {
-                    console.error(ex);
-                } else {
-                    this.log(ex.message);
+                    if (this.client.verbose) {
+                        console.error(ex);
+                    } else {
+                        this.log(ex.message);
+                    }
                 }
             }.bind(this));
         }.bind(this);

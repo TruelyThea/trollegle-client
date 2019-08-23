@@ -3,7 +3,7 @@ const {pad} = require("./Util");
 const ClientBehavior = require("./ClientBehavior");
 const UserConnection = require("./UserConnection");
 const readline = require("readline");
-const Sha1 = require("./Sha1");
+const Sha1 = require("./libraries/Sha1");
 
 const INACTIVE_HUMAN = 13 * 59 * 1000;
 
