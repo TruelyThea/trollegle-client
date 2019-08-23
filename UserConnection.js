@@ -55,11 +55,11 @@ class UserConnection extends BasicConection {
             // in which case don't call died
             if (this.client.user == this)
                 this.client.died(ex.message);
-            if (this.client.verbose) {
-                console.error(ex);
-            } else {
+            // if (this.client.verbose) {
+                // console.error(ex);
+            // } else {
                 this.log(ex.message);
-            }
+            // }
         }.bind(this));
     }
 
@@ -181,11 +181,11 @@ class UserConnection extends BasicConection {
                 // so if this is the current user:
                 if (this.client.user == this) { 
                     this.client.died(ex.message);
-                    if (this.client.verbose) {
-                        console.error(ex);
-                    } else {
+                    // if (this.client.verbose) {
+                        // console.error(ex);
+                    // } else {
                         this.log(ex.message);
-                    }
+                    // }
                 }
             }.bind(this));
         }.bind(this);
@@ -225,7 +225,7 @@ class UserConnection extends BasicConection {
             else
                 this.client.captcha(this.captchaSiteKey = args[0]);
         } else if (event == "antinudeBanned") {
-            console.log("ban", args);
+            // console.log("ban", args); // commented out for now
             this.banned("antinudeBanned");
         } else if (event == "typing") {
             this.client.typing();

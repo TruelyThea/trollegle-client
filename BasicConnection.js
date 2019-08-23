@@ -24,7 +24,7 @@ const _ = require("underscore");
         So, I never allowed the empty events to send, and after six fails it would give up.
     So if you were in a very slow chat, your connection might have died because:
         for three or so consecutive minutes no new events were available
-    Now the timeout is 62 seconds, which hopefully allows the empty events to send; (this is what the site itself uues)
+    Now the timeout is 62 seconds (this is what the site itself uses), which hopefully allows the empty events to send;
     Hopefully, this persistent bug is resolved once and for all.
 */
 

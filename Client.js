@@ -36,8 +36,6 @@ class Client {
         this.enableLogin = true;
         this.rooms = [];
 
-        this.rl = null;
-
         this.afterStartup = false;
 
         this.user = null;
@@ -50,21 +48,16 @@ class Client {
         return new ClientBehavior(this);
     }
 
-    setupRL() {
-        this.rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-
-        this.rl.on('line', (input) => {
+    setupUI() {
+        let onInput = (input) => {
             if (input.trim() == "") return;
             if (input.startsWith("/-"))
                 this.command(input.slice(2));
             else
                 this.say(input);
-        });
+        };
 
-        let quit = () => {
+        let onQuit = () => {
             if (this.user && this.user.isConnected) {
                 this.command("disconnect").then(function() {
                     process.exit(0);
@@ -75,12 +68,11 @@ class Client {
             this.rl.close();                
         };
 
-        this.rl.on('SIGINT', quit);
-        // this.rl.on('close', quit); // seems to not send "disconnect" on either close or SIGINT event, if this listener exists
+        this.logInner = require("./textualUI")(onInput, onQuit);
     }
 
     run() {
-        this.setupRL();
+        this.setupUI();
 
         this.accepted = false;
         this.qShown = false;
@@ -258,11 +250,9 @@ class Client {
             this.logInner(ex);
     }
 
+    // This is overriden by setupUI() by default
     logInner(line) {
-        process.stdout.clearLine();
-        process.stdout.cursorTo(0);
         console.log(line);
-        this.rl.prompt(true);
     }
 
     hear(data) {

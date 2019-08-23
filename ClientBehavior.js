@@ -72,6 +72,8 @@ class ClientBehavior extends Behavior {
 
         this.addCommand("topics", "/-topics=tpc1,tpc2,... set the topics for the next chats (space delimited after startup)", 0, function(tpcs) {
             this.topicsArray = !this.afterStartup ? tpcs.split(",") : Array.prototype.slice.call(arguments);
+            let topics = this.topicsArray.join(", ");
+            this.log("Topics set to: " + topics.slice(0, 30) + (topics.length > 30 ? + " ..." : "."));
         });
 
         this.addCommand("lurkrate", "/-lurkrate=ms sets lurk rate (0 to disable)", 1, function(rate) {

@@ -5,11 +5,16 @@
   "main": "client.js",
   "dependencies": {
     "axios": "^0.19.0",
-    "underscore": "^1.9.1",
-    "socks-proxy-agent": "^4.0.2"
+    "blessed": "^0.1.81",
+    "socks-proxy-agent": "^4.0.2",
+    "underscore": "^1.9.1"
   },
   "scripts": {
     "start": "node client.js"
   },
-  "author": "Thea (theatruely@gmail.com)"
+  "author": "Thea (theatruely@gmail.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TruelyThea/trollegle-client.git"
+  }
 }
