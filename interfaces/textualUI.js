@@ -2,7 +2,8 @@
 
 // a number of features I still want to add:
 //    allow scrolling in the log (will probably invole work with focusing)
-//    color the text according to the message type: pm, system announcement, regular message, commands, ...
+//        stil unsure about how to do this :/
+//    DONE: color the text according to the message type: pm, system announcement, regular message, commands, ...
 
 // I think that this is an improvement over the old rl interface
 // It would automatically scroll anyway when new messages were logged,
@@ -18,7 +19,10 @@ const blessed = require("blessed");
 
 
 module.exports = function(onInput, onQuit) {
-    var screen = blessed.screen();
+    var screen = blessed.screen({
+        smartCSR: true
+    });
+
     var body = blessed.log({
         parent: screen,
         top: 0,
@@ -27,7 +31,8 @@ module.exports = function(onInput, onQuit) {
         width: '100%',
         keys: true,
         mouse: true,
-        alwaysScroll: true,
+        tags: true,
+        // alwaysScroll: true,
         scrollable: true,
         scrollbar: {
             ch: ' ',
@@ -53,9 +58,11 @@ module.exports = function(onInput, onQuit) {
         inputOnFocus: true,
         style: {
             fg: 'white',
-            bg: 'blue'	// Blue background so you see this is different from body
+            bg: 'blue'
         }
     });
+
+    // body.key('enter', inputBar.focus.bind(inputBar));
     
     screen.key(['C-c'], onQuit);
     inputBar.key(['C-c'], onQuit);
@@ -70,9 +77,31 @@ module.exports = function(onInput, onQuit) {
     inputBar.focus();
     screen.render();
 
+    function msg(type) {
+        return "[\\[\\<]" + (type != null ? "\\(" + type + "\\) " : "") + ".*[\\]\\>] .*";
+    }
+
+    var colors = ["magenta", "yellow", "yellow", "green", "white", "green", "cyan", "cyan", "green", "white"];
+    var regexs = ["\\* .*", "\\| .*", "\\| .*? has (entered|left|joined|returned).*", "\\| You\\'ve been here for .+",
+        msg(), msg(".*"), msg("goss"), msg("private"), msg("(mute|uncd|flood|cmd)")].map(function(pattern) {
+            return new RegExp("^\\d\\d\\:\\d\\d\\s+" + pattern + "$");
+        });
+    regexs.push(/^\\> .*$/);
+
     // return log function
     return function(text) {
-        body.log(text);
+        var color = regexs.reduce(function(acc, regex, i) {
+            return regex.test(text) ? colors[i] : acc;
+        }, "white");
+
+        var date = "";
+
+        if (/^\d\d\:\d\d/.test(text)) {
+            date = text.slice(0,5);
+            text = text.slice(5);
+        }
+
+        body.log(date + "{" + color + "-fg}" + blessed.escape(text) + "{/} ");
         screen.render();
     };
 };

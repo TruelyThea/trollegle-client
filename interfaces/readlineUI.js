@@ -1,3 +1,5 @@
+// thanks to an anonomous user for the original readline UI, a while ago
+
 const readline = require("readline");
 
 module.exports = function(onInput, onQuit) {
