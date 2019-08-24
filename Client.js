@@ -2,7 +2,6 @@ const _ = require("underscore");
 const {pad} = require("./Util");
 const ClientBehavior = require("./ClientBehavior");
 const UserConnection = require("./UserConnection");
-const readline = require("readline");
 const Sha1 = require("./libraries/Sha1");
 
 const INACTIVE_HUMAN = 13 * 59 * 1000;
@@ -64,11 +63,10 @@ class Client {
                 });
             } else {
                 process.exit(0);
-            }
-            this.rl.close();                
+            }         
         };
 
-        this.logInner = require("./textualUI")(onInput, onQuit);
+        this.logInner = require("./interfaces/textualUI")(onInput, onQuit);
     }
 
     run() {
@@ -76,6 +74,9 @@ class Client {
 
         this.accepted = false;
         this.qShown = false;
+
+        this.log("Welcome to the command-line client! Type \"/-help\" or \"/-help full\" for help.");
+
         this.args.forEach(function(arg) {
             if (arg.startsWith("-"))
                 this.command(arg.slice(1));
