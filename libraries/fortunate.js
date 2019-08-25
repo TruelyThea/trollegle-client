@@ -3,7 +3,7 @@
 //    This must be a bug: it's unexpected behavior, 
 //        a command named insertLine should only insert a line into the content (and maybe also modify/sanitize/format *that* line),
 //     Also also the bug makes the command less useful, 
-//        because if you wanted escaped tags, you cannot use insertLine with the bug
+//        because if you wanted escaped tags (in an already existing line), you cannot use insertLine with the bug
 
 const blessed = require("blessed");
 
