@@ -16,15 +16,13 @@
 
 
 const blessed = require("blessed");
-
+require("../libraries/fortunate"); // bugfix
 
 module.exports = function(onInput, onQuit) {
     var screen = blessed.screen({
         smartCSR: true,
         fullUnicode: true // display emoji if possible (hopefully) 
     });
-
-    require("../libraries/fortunate"); // bugfix
 
     var body = blessed.log({
         parent: screen,

@@ -17,7 +17,7 @@ try {
     box.insertLine(0, "{open}bold{close}.{open}/bold{close}");
     box.insertLine(1, "");
 
-    var hasInsertLineBug = box.getLine(0) != "{bold}.{/bold}}";
+    var hasInsertLineBug = box.getLine(0) != "{bold}.{/bold}";
 
     if (hasInsertLineBug) {
         let insertLine = blessed.Element.prototype.insertLine;
