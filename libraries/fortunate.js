@@ -1,5 +1,9 @@
 // my bugfix for blessed insertLine, which is reparsing the tags for other lines, 
 //    the bug makes escaped lines unescapped when a calling insertLine()
+//    This must be a bug: it's unexpected behavior, 
+//        a command named insertLine should only insert a line into the content (and maybe also modify/sanitize/format *that* line),
+//     Also also the bug makes the command less useful, 
+//        because if you wanted escaped tags, you cannot use insertLine with the bug
 
 const blessed = require("blessed");
 
@@ -24,6 +28,8 @@ try {
 
         blessed.Element.prototype.insertLine = function(i, line) {
             var parseTags = this.parseTags;
+            // Element.prototype._parseTags could not be in future versions if the internal structure was changed
+            // that would throw an error
             line = blessed.Element.prototype._parseTags.call({parseTags: parseTags, screen: this.screen}, line);
             this.parseTags = false;
             insertLine.call(this, i, line);
@@ -33,10 +39,7 @@ try {
 
     box.detach();
 
-} catch (ex) { // Element.prototype._parseTags could not be in future versions if the internal structure was changed
-    // noop
+} finally { 
+    if (screen) screen.destroy();
 }
-
-if (screen)
-    screen.destroy();
 
