@@ -20,8 +20,11 @@ const blessed = require("blessed");
 
 module.exports = function(onInput, onQuit) {
     var screen = blessed.screen({
-        smartCSR: true
+        smartCSR: true,
+        fullUnicode: true // display emoji if possible (hopefully) 
     });
+
+    require("../libraries/fortunate"); // bugfix
 
     var body = blessed.log({
         parent: screen,
