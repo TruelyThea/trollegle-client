@@ -1,5 +1,8 @@
 // thanks to an anonomous user for the original readline UI, a while ago
 
+// This interface has a few display problems. For instance, when the input spans multiple lines and
+//    a new message is logged, some of the input will cover the new message
+
 const readline = require("readline");
 
 module.exports = function(onInput, onQuit) {

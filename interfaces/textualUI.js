@@ -1,14 +1,8 @@
 // This module is based on https://gist.github.com/hawkins/5c05d077a5d15d95404c3bb56b2a81d7
 
-// I think that this is an improvement over the old rl interface
-// It would automatically scroll anyway when new messages were logged,
-//     so it's not exactly that we're losing a feature by not having scrolling yet
-// This in fact fixes display problems, like when the input spanned multiple lines,
-//    a new message was logged, but it wasn't entirally visible because some of input covered it
-//    and also fixes some issues when there was scrolling in the rl interface
+// I'd like to know how this UI works on your operating system!
 
 // for now, console.log() and console.error() calls are commented out in UserConnection.js in case they case display issues
-
 
 const blessed = require("blessed");
 require("../libraries/fortunate"); // bugfix
@@ -16,7 +10,11 @@ require("../libraries/fortunate"); // bugfix
 module.exports = function(onInput, onQuit) {
     var screen = blessed.screen({
         smartCSR: true,
-        fullUnicode: true // display emoji if possible (hopefully) 
+        // fullUnicode can cause display problems on Windows
+        // the emoji get displayed as some questionmarks and whitespace, more than just the number of code points, 
+        //     but blessed seems to only update up to the length of the text, 
+        //     so sometimes part of the line won't be cleared when the next one is printed
+        fullUnicode: process.platform !== "win32" // display emoji if possible (hopefully) 
     });
 
     var body = blessed.log({
@@ -29,7 +27,7 @@ module.exports = function(onInput, onQuit) {
         vi: true,
         mouse: true,
         tags: true,
-        alwaysScroll: false,
+        // alwaysScroll: true,
         scrollable: true,
         scrollbar: {
             ch: ' ',
@@ -94,7 +92,7 @@ module.exports = function(onInput, onQuit) {
 
     var colors = ["magenta", "yellow", "yellow", "green", "white", "green", "cyan", "cyan", "green", "white"];
     var regexs = ["\\* .*", "\\| .*", "\\| .*? has (entered|left|joined|returned).*", "\\| You\\'ve been here for .+",
-        msg(), msg(".*"), msg("goss"), msg("private"), msg("(mute|uncd|flood|cmd)")].map(function(pattern) {
+        msg(), msg("\D*"), msg("goss"), msg("private"), msg("(mute|uncd|flood|cmd)")].map(function(pattern) {
             return new RegExp("^\\d\\d\\:\\d\\d\\s+" + pattern + "$");
         });
     regexs.push(/^\\> .*$/);
