@@ -34,7 +34,7 @@ class ClientBehavior extends Behavior {
         let hidden = this.hidden;
 
         let generateHelp = function(args) {
-            let help = "";
+            let help = "Displaying command /-help" + (args.length > 0 ? ":\n" : " (other helpful commands include \"/-help full\" and \"/-navigate\")\n");
             _.filter(commands, function(cmd, key) {
                 return args.length ? 
                     args[0] == "full" ? true : keywordPredicate(args, cmd) :
@@ -42,7 +42,7 @@ class ClientBehavior extends Behavior {
             }).forEach(function(cmd) {
                 help += cmd.helpString.slice(1) + "\n";
             });
-            return help.trim();
+            return help; // .trim();
         };
 
         this.addHiddenCommand("help", "/-help [full|words...] : displays command help.\n" + 
@@ -51,6 +51,19 @@ class ClientBehavior extends Behavior {
             "    at runtime, use a space instead of an =.", 0, function() {
             this.log(generateHelp(arguments));
         }, ["h"]);
+
+        this.addHiddenCommand("navigate", "/-navigate : displays help for navigating the text-based user interface.", 0, function() {
+            this.log(
+                "When focus is on the input field, press `esc` to focus the log,\n" +
+                "    or press `enter` to focus the log if the input field is empty.\n" +
+                "Similarly, press `esc` or `enter` to focus the input bar if the log has focus.\n" +
+                "If focus is on the log: \n" +
+                "    Press either `j` or the down arrow to scroll down.\n" +
+                "    Press either `k` or the up arrow to scroll up.\n" +
+                "    Press `g` to jump to the first line.\n" +
+                "    Press `shift+g` to jump to the last line.\n"
+            );
+    });
 
         this.addCommand("connect", "/-connect join the chat", 0, function() {
             this.doConnect = true;
@@ -182,7 +195,7 @@ class ClientBehavior extends Behavior {
 
         this.addHiddenCommand("display", "/-display=on|off indicates whether repsonses appear in the terminal", 1, predAssign("display"));
 
-        this.addCommand("style", "/-style=traditional|verbose", 1, function(style) {
+        this.addHiddenCommand("style", "/-style=traditional|verbose", 1, function(style) {
             if (style.toLowerCase() == "traditional")
                 this.style = Client.style.TRADITIONAL;
             else if (style.toLowerCase() == "verbose")
@@ -243,7 +256,7 @@ class ClientBehavior extends Behavior {
             });
         });
 
-        this.addCommand("enablelogin", "/-enablelogin=true|false", 1, predAssign("enableLogin"), ["enable"]);
+        this.addHiddenCommand("enablelogin", "/-enablelogin=true|false", 1, predAssign("enableLogin"), ["enable"]);
         this.addCommand("room", "/-room room challenge password (add the triple to the challenge collection). useful with /-loadrc", 3, function(room, challenge, password) {
             this.rooms.push([room, challenge, password]);
         }, ["addroom", "challenge", "addchallenge"]);

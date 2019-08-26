@@ -1,10 +1,5 @@
 // This module is based on https://gist.github.com/hawkins/5c05d077a5d15d95404c3bb56b2a81d7
 
-// a number of features I still want to add:
-//    allow scrolling in the log (will probably invole work with focusing)
-//        stil unsure about how to do this :/
-//    DONE: color the text according to the message type: pm, system announcement, regular message, commands, ...
-
 // I think that this is an improvement over the old rl interface
 // It would automatically scroll anyway when new messages were logged,
 //     so it's not exactly that we're losing a feature by not having scrolling yet
@@ -31,9 +26,10 @@ module.exports = function(onInput, onQuit) {
         height: '100%-1',
         width: '100%',
         keys: true,
+        vi: true,
         mouse: true,
         tags: true,
-        // alwaysScroll: true,
+        alwaysScroll: false,
         scrollable: true,
         scrollbar: {
             ch: ' ',
@@ -63,16 +59,30 @@ module.exports = function(onInput, onQuit) {
         }
     });
 
-    // body.key('enter', inputBar.focus.bind(inputBar));
+    // So far, I have no Idea why body.scroll isn't referring to the scroll method in it's prototype
+    // I think it's another bug in blessed...
+    // try:
+    //     body.log(body.__proto__ == blessed.log.prototype);
+    //     body.log(body.scroll == blessed.log.prototype.scroll);
+    //     body.log(body.scroll == blessed.scrollablebox.prototype.scroll);
+    //     body.log(body instanceof blessed.log);
+    body.scroll = blessed.log.prototype.scroll; 
+    
     
     screen.key(['C-c'], onQuit);
     inputBar.key(['C-c'], onQuit);
-    
-    inputBar.on('submit', (text) => {
-        onInput(text);
-        inputBar.clearValue();
-        screen.render();
-        inputBar.focus();
+
+    body.key(["enter", "escape"], inputBar.focus.bind(inputBar));
+    inputBar.on("cancel", body.focus.bind(body));
+    inputBar.on("submit", (text) => {
+        if (text == "") {
+            body.focus();
+        } else {
+            onInput(text);
+            inputBar.clearValue();
+            screen.render();
+            inputBar.focus();
+        }
     });
 
     inputBar.focus();
