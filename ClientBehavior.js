@@ -90,14 +90,15 @@ class ClientBehavior extends Behavior {
         });
 
         this.addCommand("lurkrate", "/-lurkrate=ms sets lurk rate (0 to disable)", 1, function(rate) {
-            rate = parseInt(rate, 10) || Infinity;
+            var unit = rate == 0 ? "off" : rate + (rate < 60 ? "m" : rate < 3541 ? "s" : "ms");
+            rate = parseInt(rate, 10) || 0; // lurk canceled by scheduleLurk if 0
             if (rate < 60)
                 rate *= 60;
-            if (rate < 3540)
+            if (rate < 3541)
                 rate *= 1000;
             this.lurkRate = rate;
             this.scheduleLurk();
-            this.logVerbose("Setting lurkrate to " + rate + "ms.")
+            this.log("Setting lurkrate to " + unit + ".");
         });
 
         this.addCommand("lurkmsg", "/-lurkmsg=1|2 sets pipe-separated lurk messages (default /8)", 1, function() {

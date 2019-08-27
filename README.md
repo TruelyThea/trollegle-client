@@ -2,7 +2,7 @@ This is an extendable trollegle client written in JavaScript. Another (SimpeClie
 
 To run this, you must have [node.js](https://nodejs.org) installed. In your clone of the repository (you may download the zip file instead) you must call `npm install`. Then call `node client` to start the client.
 
-After the client is running, call `/-navigate` for help witht the UI and call `/-help full` for a list of commands, and a general description.
+After the client is running, call `/-navigate` for help with the UI and call `/-help full` for a list of commands, and a general description.
 
 This client doesn't support tor circuits at the moment, but besides that it supports all of the features of SimpleClient.java. It also supports features that aren't included in SimpleClient:
 

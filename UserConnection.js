@@ -167,14 +167,18 @@ class UserConnection extends BasicConection {
 
     handleEvents() { // polls for new events to acknowledge
         let _handleEvents = function() {
-            let rcvd = false;
             this.getEvents().then(function(data) {
-                if (_.isObject(data)) {
-                    rcvd = true;
+                this.logVerbose("[events]: " + JSON.stringify(data));
+                // before, it is true that _handleEvents wasn't called if the server returned null
+                // however, the user wasn't formally disconnected and it wasn't uncommon to see the lurkrate trail off with no response
+                // now this.died() is properly called if null is returned
+                // hopefully this fixes that problem...
+                if (data === null && !this.done) {
+                    this.died("Server was unreachable for too long and your connection was lost.");
+                } else if (!this.done) {
                     this.handleReply(data);
-                }
-                if (rcvd && !this.done)
                     setTimeout(_handleEvents, 200);
+                }
             }.bind(this)).catch(function(ex) {
                 this.isConnected = false;
                 // could be a fail from a old timedout request, after already disconnected formally)

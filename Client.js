@@ -258,6 +258,8 @@ class Client {
 
     hear(data) {
         let prepend = this.style == Client.style.TRADITIONAL ? "" : "Stranger: ";
+        // the site server seems to insert random space in messages
+        // (try listening on /-verbose for a little while to see)
         this.log(prepend + data.replace(/  +/g, " "));
     }
 

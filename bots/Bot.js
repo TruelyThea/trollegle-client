@@ -20,6 +20,7 @@ class Bot extends Client {
     message(data) {
         super.message(data);
         // the site server seems to insert random space in messages
+        // (try listening on /-verbose for a little while to see)
         data = data.trim().replace(/\s+/g, " ");
 
         let mustSay = data.match(/^\| .* you need to say (the word \")?(.+?)\"?\./);

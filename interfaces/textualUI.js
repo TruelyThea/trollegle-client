@@ -4,6 +4,7 @@
 
 // for now, console.log() and console.error() calls are commented out in UserConnection.js in case they case display issues
 
+const _ = require("underscore");
 const blessed = require("blessed");
 require("../libraries/fortunate"); // bugfix
 
@@ -99,6 +100,8 @@ module.exports = function(onInput, onQuit) {
 
     // return log function
     return function(text) {
+        text = String(text); // if text is not a string, an error will be thrown in blessed.escape()
+
         var color = regexs.reduce(function(acc, regex, i) {
             return regex.test(text) ? colors[i] : acc;
         }, "white");
