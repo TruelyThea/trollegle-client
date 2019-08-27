@@ -4,7 +4,6 @@
 
 // for now, console.log() and console.error() calls are commented out in UserConnection.js in case they case display issues
 
-const _ = require("underscore");
 const blessed = require("blessed");
 require("../libraries/fortunate"); // bugfix
 

@@ -90,8 +90,8 @@ class ClientBehavior extends Behavior {
         });
 
         this.addCommand("lurkrate", "/-lurkrate=ms sets lurk rate (0 to disable)", 1, function(rate) {
-            var unit = rate == 0 ? "off" : rate + (rate < 60 ? "m" : rate < 3541 ? "s" : "ms");
             rate = parseInt(rate, 10) || 0; // lurk canceled by scheduleLurk if 0
+            var unit = rate == 0 ? "off" : rate + (rate < 60 ? "m" : rate < 3541 ? "s" : "ms");
             if (rate < 60)
                 rate *= 60;
             if (rate < 3541)

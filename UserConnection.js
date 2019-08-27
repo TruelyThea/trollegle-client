@@ -173,11 +173,13 @@ class UserConnection extends BasicConection {
                 // however, the user wasn't formally disconnected and it wasn't uncommon to see the lurkrate trail off with no response
                 // now this.died() is properly called if null is returned
                 // hopefully this fixes that problem...
-                if (data === null && !this.done) {
-                    this.died("Server was unreachable for too long and your connection was lost.");
-                } else if (!this.done) {
-                    this.handleReply(data);
-                    setTimeout(_handleEvents, 200);
+                if (!this.done) {
+                    if (data === null) {
+                        this.died("Server was unreachable for too long and your connection was lost.");
+                    } else {
+                        this.handleReply(data);
+                        setTimeout(_handleEvents, 200);
+                    }
                 }
             }.bind(this)).catch(function(ex) {
                 this.isConnected = false;
