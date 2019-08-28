@@ -2,8 +2,6 @@
 
 // I'd like to know how this UI works on your operating system!
 
-// for now, console.log() and console.error() calls are commented out in UserConnection.js in case they case display issues
-
 const blessed = require("blessed");
 require("../libraries/fortunate"); // bugfix
 
@@ -11,10 +9,10 @@ module.exports = function(onInput, onQuit) {
     var screen = blessed.screen({
         smartCSR: true,
         // fullUnicode can cause display problems on Windows
-        // the emoji get displayed as some questionmarks and whitespace, more than just the number of code points, 
-        //     but blessed seems to only update up to the length of the text, 
+        // the emoji get displayed as some questionmarks and whitespace, more than just the number of code points,
+        //     but blessed seems to only update up to the length of the text,
         //     so sometimes part of the line won't be cleared when the next one is printed
-        fullUnicode: process.platform !== "win32" // display emoji if possible (hopefully) 
+        fullUnicode: process.platform !== "win32" // display emoji if possible (hopefully)
     });
 
     var body = blessed.log({
@@ -34,14 +32,14 @@ module.exports = function(onInput, onQuit) {
             bg: 'red'
         }
     });
-    
+
     blessed.text({
         parent: screen,
         bottom: 0,
         left: 0,
         content: '>'
     });
-    
+
     var inputBar = blessed.textbox({
         parent: screen,
         bottom: 0,
@@ -64,9 +62,9 @@ module.exports = function(onInput, onQuit) {
     //     body.log(body.scroll == blessed.log.prototype.scroll);
     //     body.log(body.scroll == blessed.scrollablebox.prototype.scroll);
     //     body.log(body instanceof blessed.log);
-    body.scroll = blessed.log.prototype.scroll; 
-    
-    
+    body.scroll = blessed.log.prototype.scroll;
+
+
     screen.key(['C-c'], onQuit);
     inputBar.key(['C-c'], onQuit);
 

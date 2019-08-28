@@ -12,12 +12,11 @@ class Client {
         this.args = process.argv.slice(2);
         this.verbose = false;
 
-        this.accepted = false;
         this.qShown = false;
 
         this.doHandoff = false;
         this.doConnect = false;
-        
+
         this.lurkRate = 0;
         this.lurkMessages = ["/8"];
         this.lastLurk = 0;
@@ -63,7 +62,7 @@ class Client {
                 });
             } else {
                 process.exit(0);
-            }         
+            }
         };
 
         this.logInner = require("./interfaces/textualUI")(onInput, onQuit);
@@ -71,9 +70,6 @@ class Client {
 
     run() {
         this.setupUI();
-
-        this.accepted = false;
-        this.qShown = false;
 
         this.log("Welcome to the command-line client! Type \"/-help\" or \"/-help full\" for help.");
 
@@ -88,7 +84,7 @@ class Client {
 
         if (topics.length > 0)
             this.topicsArray = this.topicsArray ? this.topicsArray.concat(topics) : topics;
-        
+
         if (this.doHandoff || this.id != null || this.doConnect)
             this.initiateUser();
 
@@ -96,7 +92,7 @@ class Client {
     }
 
     command(data) {
-        // before startup also compatible with loadrc, given the command doesn't contain =
+        // during startup also compatible with loadrc, given the command doesn't contain =
         let args = this.afterStartup ? data.split(/\s+/) : data.split(/\=|\s+/);
 
         try {
@@ -114,11 +110,14 @@ class Client {
 
         this.user = new UserConnection(this);
 
-        if (this.handoff) {
-            this.user.establishChat().then(function() {
-                this.log(this.user.id);
-                process.exit(0);
-            }.bind(this))
+        if (this.doHandoff) {
+            this.user.establishChat().then(() => {
+                if (this.user)
+                    this.log(this.user.id);
+                else
+                    this.log("Couldn't perform handoff; perhaps there was a captcha or a ban or the connection died.");
+                // process.exit(0); // would cause the text on the new interface to not show..., so user has to press Ctrl-C, unfortunately
+            });
         } else {
             this.user.run();
         }
@@ -129,7 +128,9 @@ class Client {
         this.scheduleLurk();
     }
 
-    unsuccessfulSend(time) {
+    unsuccessfulSend(time, action, msg) {
+        this.log("Failed to send " + action + (msg ? "with `" + msg + "`": "") + ".");
+
         // I'm not exactly sure why we do this, I'm just following SimpleClient.java
         this.lastLurk += Math.max(0, INACTIVE_HUMAN - time + this.lastLurk);
         this.scheduleLurk();
@@ -145,32 +146,29 @@ class Client {
 
     died(data) {
         this.log("died: " + data);
-        this.accepted = false;
         this.removeUser();
     }
 
-    captcha(data) { // in the future, captcha solving
+    captcha(data) {
         this.log("captcha: " + data);
-        this.captchaKey = data;
-        this.accepted = false;
+        // this.captchaKey = data; // in the future, possibly captcha solving
         this.removeUser();
     }
 
     ban(data) {
         this.log("ban: " + data);
-        this.accepted = false;
         this.removeUser();
     }
 
     typing() {
-        //noop
+        // noop
     }
 
     stoppedTyping() {
         // noop
     }
 
-    message(data) {    
+    message(data) {
         this.hear(data);
 
         let parts = data.split(/ +/);
@@ -208,7 +206,6 @@ class Client {
 
     disconnected() {
         this.log("Stranger has disconnected");
-        this.accepted = true;
         this.removeUser();
     }
 
@@ -219,11 +216,11 @@ class Client {
     scheduleLurk() {
         clearTimeout(this.lurkTask); // okay even if lurkTask is null
 
-        // `unsuccessfulSend` changes lastLurk and calls this to reschedule the lurk
-        // after calling `/-lurkrate` this is called to reschedule the lurk
+        // `unsuccessfulSend` changes lastLurk and calls this to reschedule the lurk.
+        // Also, after calling `/-lurkrate`, this is called to reschedule the lurk.
         let wait = Math.max(0, this.lurkRate + this.lastLurk - Date.now());
 
-        // must be less than or equal to the max signed int, 
+        // must be less than or equal to the max signed int,
         // otherwise would be overflow and immediate execution of lurk function (well, on the next tick)
         if (wait > 0x7FFFFFFF)
             this.logVerbose("Cannot schedule lurk because lurkrate is too long");

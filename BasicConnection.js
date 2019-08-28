@@ -1,37 +1,22 @@
 const _ = require("underscore");
 
-/*
-    By default, axios has no timeout on requests. 
-    I encountered a problem in which my client occasionally stopped displaying responses. 
-    At the time I thought that the conection failed, and restarted the client. 
-    The bug only occured about once per hour. 
-    I decided that it was necessary to solve the bug: I knew that it would occur again.
-    After much testing and some false ends (the connection hadn't failed), 
-    I eventually found that what I sent from the terminal still appeared in another window.
-    So, I knew that it had to be an error with `handleEvents` or `getEvents`.
-    After quite a few `console` logs, I concluded that the `axios` request promises don't resolve if I turn off my connection for a little while.
-    From there, it wasn't long before I noticed there wasn't a response timeout.
-    After a little reading, I leaned that that fact about no timeout on request.
-    This is an example of a *tiny* bug that took a couple hours to solve.
-*/
+// Currently, the site uses a timeout of 62 seconds (see getEvents() there),
+//     and SimpleClient.java uses a timeout of 90 seconds (see fillHeaders() in Util.java).
+// When fetching events, the site seems to return empty events [] after 60 seconds.
+// If we were to have a timeout before the 60 seconds,
+//    it would replace the old request on the server and the server's internal timeout for our request would be replaced.
+// Our timeout would cause the request to getEvents() to fail,
+//    and if this happened six consecutive times, we would mistakenly kill the UserConnection!
+// Thus, we need a timeout strictly greater than 60 seconds.
+// A bit of history: Not knowing this led to some unfortunate bugs in the past (see the comments in previous commits if you wish).
 
-/*
-    Ugh, new bugfix regarding that timeout!
-    It seems that the site will replace the old request for events with new request for events.
-        However, then it resets the timeout on the server, which seems to be one minute
-    after one minute it will send empty events [] and succeed
-        however, before I had a timeout of 30 seconds, after which I would try again to request events.
-        So, I never allowed the empty events to send, and after six fails it would give up.
-    So if you were in a very slow chat, your connection might have died because:
-        for three or so consecutive minutes no new events were available
-    Now the timeout is 62 seconds (this is what the site itself uses), which hopefully allows the empty events to send;
-    Hopefully, this persistent bug is resolved once and for all.
-*/
+// Also the site's script suggests that null is returned by getEvents() if "Server was unreachable for too long and your connection was lost."
+//     Clearly, though, returning null means that we were able to reach the server...
 
 const axios = require("axios").create({timeout: 62e3});
 const SocksProxyAgent = require("socks-proxy-agent");
 
-const {headers, makeRandid, retry} = require("./Util");
+const {headers, makeRandid, retry, splitMessage} = require("./Util");
 
 class BasicConnection {
 
@@ -42,7 +27,7 @@ class BasicConnection {
         this.topicsArray = config.topicsArray == null ? ["groupchat", "irc", "groupchats", "chatrooms", "math", "maths", "language", "programming", "government"] : config.topicsArray;
         ["questionMode", "lang", "proxyMove", "id"].forEach(function(value) {
             this[value] = config[value];
-        }.bind(this));
+        }, this);
     }
 
     get topics() {
@@ -58,18 +43,18 @@ class BasicConnection {
     establishChat() {
         let url = "https://front" + this.server + ".omegle.com/start?caps=recaptcha2&firstevents=1&spid=&randid=" + this.randid + (this.questionMode ? "&wantsspy=1" : this.topics) + "&lang=" + this.lang;
         let agent = this.agent;
-        
+
         return retry(2, function(succeed, fail) {
             axios.post(url, "", {
                 headers: headers(true),
                 httpsAgent: agent
-            }).then(function(response) {
+            }).then(response => {
                 succeed(response.data);
             }).catch(fail);
-        }).catch(function(ex) {
+        }).catch(ex => {
             dirtyFront(this.server);
             throw ex;
-        }.bind(this));
+        });
     }
 
     effectiveAgent() {
@@ -88,35 +73,21 @@ class BasicConnection {
                 axios.post(url, data, {
                     headers: headers(true),
                     httpsAgent: agent
-                }).then(function(response) {
+                }).then(response => {
                     succeed(response.data);
                 }).catch(fail);
             }, lastFail && !lastFail.response ? 10e3 : 0);
-        }).catch(function(ex) {
+        }).catch(ex => {
             dirtyFront(this.server);
             throw ex;
-        }.bind(this));
+        });
     }
 
     sendAction(action, msg) {
-        while (msg != null && msg.length > 1500) {
-            let left = msg.slice(0, msg.length < 2500 ? 1000 : 1500);
-            let seam = left.lastIndexOf("\nban ?off =");
-            if (seam == -1)
-                seam = left.lastIndexOf("\n");
-            if (seam == -1)
-                seam = left.lastIndexOf(". ") + 2;
-            if (seam == 1)
-                seam = left.lastIndexOf(" ") + 1;
-            if (seam == 0 || seam < 300) {
-                this.sendActionInner(action, left);
-                msg = msg.slice(left.length);
-            } else {
-                this.sendActionInner(action, left.slice(0, seam));
-                msg = msg.slice(seam);
-            }
-        }
-        return this.sendActionInner(action, msg);
+        return splitMessage(msg).reduce((chain, piece) => {
+            // `.then()` seems like a better choice than `.finally()`
+            return chain.then(() => this.sendActionInner(action, piece));
+        }, Promise.resolve());
     }
 
     sendActionInner(action, msg) {
@@ -130,19 +101,19 @@ class BasicConnection {
             axios.post(url, data, {
                 headers: headers(false),
                 httpsAgent: agent
-            }).then(function(response) {
+            }).then(response => {
                 succeed(response.data);
             }).catch(fail); // not sure about the FileNotFoundException in java
-        }).catch(function(ex) {
+        }).catch(ex => {
             dirtyFront(this.server);
             throw ex;
-        }.bind(this));
+        });
     }
 }
 
 
 class Front {
-    constructor(id) { 
+    constructor(id) {
         this.id = id + 1;
         this.lastDirty = 0;
     }

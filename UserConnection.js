@@ -1,9 +1,7 @@
 const BasicConection = require("./BasicConnection");
 const _ = require("underscore");
 
-function expectStringArg(args) {
-    return _.isString(args[0]);
-}
+const {expectStringArg} = require("./Util");
 
 class UserConnection extends BasicConection {
 
@@ -16,17 +14,31 @@ class UserConnection extends BasicConection {
         this.done = false;
         this.isConnected = false;
         this.tellQueue = [];
-        this.seesTyping = false;
+        this.seesTyping = false; // indicates whether the other participant sees typing
         this.lastLurk = 0;
 
         this.connected = _.once(function() {
             this.isConnected = true;
             client.connected();
         });
-        this.banned = _.bind(client.ban, client);
-        ["log", "logVerbose"].forEach(function(value) {
-            this[value] = _.bind(client[value], client)
-        }, this);
+
+        this.log = client.log.bind(client);
+        this.logVerbose = client.logVerbose.bind(client);
+
+        this.handleFailure = ex => {
+            this.isConnected = false;
+            // could be a fail from a old timedout request, after already disconnected formally)
+            // so only if this is the current user:
+            if (this.isCurrentConnection())
+                this.client.died(ex.message);
+            this.logVerbose("The following error was encounterd it is on " +
+                (this.isCurrentConnection() ? "the current" : "a previous") + " connection: ");
+            this.logVerbose(ex.stack); // node Error's have a stack property
+        };
+    }
+
+    isCurrentConnection() {
+        return this.client.user === this;
     }
 
     dispose() {
@@ -39,34 +51,21 @@ class UserConnection extends BasicConection {
         }
         this.logVerbose("Starting chat on front " +  this.server);
 
-        return super.establishChat().then(function(data) {
+        return super.establishChat().then(data => {
             if (!_.isObject(data)) { // *should* be string and data.trim() == ""
-                this.banned("empty reply");
+                this.client.ban("empty reply");
             } else if (_.isEmpty(data)) { // *should* be {}
-                this.banned("empty object");
+                this.client.ban("empty object");
             } else {
                 this.logVerbose("Connection established");
                 this.handleReply(data);
             }
             // return this.id;
-        }.bind(this)).catch(function(ex) {
-            this.isConnected = false;
-            // could be a fail from a old timedout request, after already disconnected formally)
-            // in which case don't call died
-            if (this.client.user == this)
-                this.client.died(ex.message);
-            // if (this.client.verbose) {
-                // console.error(ex);
-            // } else {
-                this.log(ex.message);
-            // }
-        }.bind(this));
+        }).catch(this.handleFailure);
     }
 
     sendTyping(typing) {
-        if (typing)
-            return this.sendAction("typing", null);
-        return this.sendAction("stoppedtyping", null);
+        return this.sendAction(typing ? "typing" : "stoppedtyping", null);
     }
 
     sendDisconnect() {
@@ -85,11 +84,7 @@ class UserConnection extends BasicConection {
     }
 
     sendActionInner(action, msg) {
-        return super.sendActionInner(action, msg).catch(function(ex) {
-            this.isConnected = false;
-            if (this.client.user == this) // could be a fail from a old timedout request, after already disconnected formally)
-                this.client.died(ex.message);
-        });
+        return super.sendActionInner(action, msg).catch(this.handleFailure);
     }
 
     schedSendTyping(typing) {
@@ -117,7 +112,7 @@ class UserConnection extends BasicConection {
 
         let queue = this.tellQueue;
 
-        let poll = function() { // this part is especially ugly, needs to be made better; possibly with promises
+        let poll = function() { // this part is especially ugly, this still needs to be made better; possibly with promises
             if (!queue.length) {
                 this.pollQueue();
                 return;
@@ -141,8 +136,7 @@ class UserConnection extends BasicConection {
                 this.sendDisconnect();
                 poll();
             } else {
-                if (!msg.startsWith("["))
-                    this.logVerbose("[sending] " + msg);
+                this.logVerbose("[sending]: " + msg);
                 if (!this.seesTyping)
                     this.sendTyping(true);
                 setTimeout(function() {
@@ -166,8 +160,8 @@ class UserConnection extends BasicConection {
     }
 
     handleEvents() { // polls for new events to acknowledge
-        let _handleEvents = function() {
-            this.getEvents().then(function(data) {
+        let _handleEvents = () => {
+            this.getEvents().then(data => {
                 this.logVerbose("[events]: " + JSON.stringify(data));
                 // before, it is true that _handleEvents wasn't called if the server returned null
                 // however, the user wasn't formally disconnected and it wasn't uncommon to see the lurkrate trail off with no response
@@ -181,20 +175,8 @@ class UserConnection extends BasicConection {
                         setTimeout(_handleEvents, 200);
                     }
                 }
-            }.bind(this)).catch(function(ex) {
-                this.isConnected = false;
-                // could be a fail from a old timedout request, after already disconnected formally)
-                // so if this is the current user:
-                if (this.client.user == this) { 
-                    this.client.died(ex.message);
-                    // if (this.client.verbose) {
-                        // console.error(ex);
-                    // } else {
-                        this.log(ex.message);
-                    // }
-                }
-            }.bind(this));
-        }.bind(this);
+            }).catch(this.handleFailure);
+        };
 
         _handleEvents();
     }
@@ -204,14 +186,12 @@ class UserConnection extends BasicConection {
         if (_.isArray(data)) {
             this.handleEventsReply(data);
         } else if (_.isObject(data)) {
-            if (data.clientID) {
+            if (data.clientID)
                 this.id = data.clientID;
-            }
-            if (data.events) {
+            if (data.events)
                 this.handleEventsReply(data.events);
-            }
         } else  {
-            this.log("Can't handle reply: " + line);
+            this.log("Can't handle reply: " + data);
         }
     }
 
@@ -219,7 +199,7 @@ class UserConnection extends BasicConection {
         events.forEach(function(event) {
             if (!_.isArray(event) || event.length < 1 || !_.isString(event[0]))
                 this.log("Badly formed event: " + event);
-            else 
+            else
                 this.handleEvent(event[0], event.slice(1));
         }, this);
     }
@@ -231,19 +211,17 @@ class UserConnection extends BasicConection {
             else
                 this.client.captcha(this.captchaSiteKey = args[0]);
         } else if (event == "antinudeBanned") {
-            // console.log("ban", args); // commented out for now
-            this.banned("antinudeBanned");
-        } else if (event == "typing") {
-            this.client.typing();
-        } else if (event == "stoppedTyping") {
-            this.client.stoppedTyping();
+            this.client.ban("antinudeBanned");
+        } else if (event == "typing" || event == "stoppedTyping") {
+            this.client[event]();
         } else if (event == "question") {
             if (!expectStringArg(args))
                 this.log("Question missing: " + args);
             else
                 this.question = args[0];
             this.connected();
-            // sleep in java?
+            // in the original UserConnection.java, Util.sleep(200) must've been there to simulate user reading the question
+            // If so, we probably don't need to worry about this here because we aren't sending the welcome announcements
         } else if (event == "gotMessage") {
             this.connected();
             if (!expectStringArg(args))
@@ -264,17 +242,18 @@ class UserConnection extends BasicConection {
     }
 
     run() {
-        if (this.id != null) this.connected();
-        (this.id != null ? Promise.resolve() : this.establishChat()).then(function() {
+        (this.id != null ? (this.connected(), Promise.resolve()) : this.establishChat()).then(() => {
             if (this.id) {
                 this.pollQueue();
                 this.handleEvents();
             } else {
-                this.client.died();
+                if (this.client.user == this)
+                    this.client.died("connection died before it could be established or server didn't include clientID");
+                else
+                    this.logVerbose("old connection died before it could be established");
             }
-        }.bind(this));
+        });
     }
-
 
 }
 

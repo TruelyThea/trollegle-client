@@ -1,23 +1,18 @@
 const Behavior = require("./Behavior");
 const _ = require("underscore");
 const fs = require("fs");
+const querystring = require("querystring")
 const Client = require("./Client");
 let axios = require("axios").create({timeout: 30e3});
 
-function predAssign(value) {
+const {matchesEachKeyword, formatDate} = require("./Util");
+
+function predAssign(value, doLog) {
     return function(predicate) {
         this[value] = (/^(true|on|1|yes|y)$/i.test(predicate));
+        if (doLog)
+            this.log("Setting " + value + " to " + (this[value] ? "on" : "off"));
     };
-}
-
-function keywordPredicate(args, cmd) {
-    return _.every(args, function(word) {
-        let pat = new RegExp("\\b" + word + "\\b");
-        return !/^[\w\d]+$/.test(word) || pat.test(cmd.helpString) || 
-            cmd.name == word.toLowerCase() || _.some(cmd.aliases, function(alias) {
-                return alias == word.toLowerCase();
-            });
-    });
 }
 
 class ClientBehavior extends Behavior {
@@ -25,7 +20,6 @@ class ClientBehavior extends Behavior {
         super(context);
 
         this.hidden = [];
-
         this.addAll();
     }
 
@@ -36,16 +30,16 @@ class ClientBehavior extends Behavior {
         let generateHelp = function(args) {
             let help = "Displaying command /-help" + (args.length > 0 ? ":\n" : " (other helpful commands include \"/-help full\" and \"/-navigate\")\n");
             _.filter(commands, function(cmd, key) {
-                return args.length ? 
-                    args[0] == "full" ? true : keywordPredicate(args, cmd) :
+                return args.length ?
+                    args[0] == "full" ? true : matchesEachKeyword(cmd, args) :
                     !_.contains(hidden, key);
             }).forEach(function(cmd) {
                 help += cmd.helpString.slice(1) + "\n";
             });
-            return help; // .trim();
+            return help;
         };
 
-        this.addHiddenCommand("help", "/-help [full|words...] : displays command help.\n" + 
+        this.addHiddenCommand("help", "/-help [full|words...] : displays command help.\n" +
             "    Note that command help is sometimes listed as /-cmd=value.\n" +
             "    This is the notation for command-line arguments;\n" +
             "    at runtime, use a space instead of an =.", 0, function() {
@@ -63,17 +57,17 @@ class ClientBehavior extends Behavior {
                 "    Press `g` to jump to the first line.\n" +
                 "    Press `shift+g` to jump to the last line.\n"
             );
-    });
+        });
 
         this.addCommand("connect", "/-connect join the chat", 0, function() {
             this.doConnect = true;
             if (this.afterStartup)
-                this.initiateUser();
+                this.initiateUser(); // okay if /-c called twice
         }, ["c"]);
 
         this.addCommand("leave", "/-leave leave the chat", 0, function() {
             let task = Promise.resolve();
-            if (this.user) { // need to test
+            if (this.user) {
                 this.log(this.user.isConnected ? "You have disconnected" : "You quit before the connection was established");
                 task = this.user.sendDisconnect();
                 this.removeUser();
@@ -89,7 +83,7 @@ class ClientBehavior extends Behavior {
             this.log("Topics set to: " + topics.slice(0, 30) + (topics.length > 30 ? "...." : "."));
         });
 
-        this.addCommand("lurkrate", "/-lurkrate=ms sets lurk rate (0 to disable)", 1, function(rate) {
+        this.addCommand("lurkrate", "/-lurkrate=[m<60|s<3541|ms] sets lurk rate (0 to disable)", 1, function(rate) {
             rate = parseInt(rate, 10) || 0; // lurk canceled by scheduleLurk if 0
             var unit = rate == 0 ? "off" : rate + (rate < 60 ? "m" : rate < 3541 ? "s" : "ms");
             if (rate < 60)
@@ -110,30 +104,17 @@ class ClientBehavior extends Behavior {
         });
 
         this.addCommand("handoff", "/-handoff prints client id and exits (only on startup)", 0, function() {
-            this.handoff = true;
+            this.doHandoff = true;
         });
 
         this.addCommand("id", "/-id prints client id (only while running)", 0, function() {
-            let user = this.user
+            let user = this.user;
             if (user && user.id) {
                 this.log(user.id);
             } else
                 this.log("Connection not yet established");
             // log(user.killAndSave());
         });
-
-        
-        function formatDate(date) { // from https://stackoverflow.com/questions/23593052/format-javascript-date-to-yyyy-mm-dd
-            var d = new Date(date),
-                month = '' + (d.getMonth() + 1),
-                day = '' + d.getDate(),
-                year = d.getFullYear();
-        
-            if (month.length < 2) month = '0' + month;
-            if (day.length < 2) day = '0' + day;
-        
-            return [year, month, day].join('-');
-        }
 
         this.addCommand("out", "/-out=!|path log the chat to the specified path (by appending or creation)\n" +
             "    `!` to remove the path and stop logging\n" +
@@ -163,7 +144,7 @@ class ClientBehavior extends Behavior {
 
             var index = path.indexOf("?");
             if (index > 0) {
-                _.extend(keys, require("querystring").parse(path.slice(index + 1)));
+                _.extend(keys, querystring.parse(path.slice(index + 1)));
                 path = path.slice(0, index);
             }
 
@@ -206,18 +187,19 @@ class ClientBehavior extends Behavior {
         this.addCommand("proxy", "/-proxy=direct|host:port (only affects future connections)", 1, function(host, port) {
             if (host.toLowerCase() == "direct") {
                 this.proxy = null;
-                return;
+            } else {
+                let hostport = host.split(":", 2);
+
+                if (hostport.length != 2 && !port)
+                    this.log("I need a port");
+                else
+                    this.proxy = "socks://" + host + (hostport.length == 2 ? "" : ":" + port);
             }
 
-            let hostport = host.split(/\:|/, 2);
-
-            if (hostport.length != 2 && !port)
-                this.log("I need a port");
-            else
-                this.proxy = "socks://" + host + (hostport.length == 2 ? "" : port);
+            this.log("Setting proxy to " + (this.proxy || "direct"));
         });
 
-        this.addCommand("proxymove", "/-proxymove=true|false (only affects future connections)", 1, predAssign("proxyMove"));
+        this.addCommand("proxymove", "/-proxymove=true|false (only affects future connections)", 1, predAssign("proxyMove", true));
 
         this.addHiddenCommand("server", "/-server=int (only affects future connections)", 1, function(i) {
             this.front = i;
@@ -227,7 +209,7 @@ class ClientBehavior extends Behavior {
             this.lang = locale;
         });
 
-        this.addHiddenCommand("questionmode", "/-questionmode=false|true (only affects future connections)", 1, predAssign("questionMode"), ["question"]);
+        this.addHiddenCommand("questionmode", "/-questionmode=false|true (only affects future connections)", 1, predAssign("questionMode"), ["question", "q"]);
 
         this.addHiddenCommand("verbose", "/-verbose", 0, function() {
             this.verbose = true;
@@ -238,26 +220,25 @@ class ClientBehavior extends Behavior {
         }, ["t"]);
 
         this.addCommand("pulses", "/-pulses displays the current pulses on the motherships", 0, function() {
-            let log = this.log.bind(this);
             ["https://bellawhiskey.ca/trollegle", "https://centimeters.herokuapp.com/trollegle"].forEach(function(mothership) {
-                axios.get(mothership + "/raw").then(function(res) {
+                axios.get(mothership + "/raw").then(res => {
                     let data = res.data;
                     let pulses = mothership + " -\n";
                     try {
                         _.first(data.pulses, 10).forEach(function(pulse) {
-                            pulses += `    ${pulse.room} (${pulse.room.normalize('NFD').replace(/[\u0300-\u036f]/g, "")}): ${pulse.words.join(", ")}\n`
+                            pulses += `    ${pulse.room} (${pulse.room.normalize('NFD').replace(/[\u0300-\u036f]/g, "")}): ${pulse.words.join(", ")}\n`;
                         });
                     } catch (ex) {
                         pulses += "    response json wasn't formed correctly\n";
                     }
-                    log(pulses);
-                }).catch(function(err) {
-                    log(mothership + " -\n    couldn't be reached: " + err.message + "\n");
+                    this.log(pulses);
+                }).catch(err => {
+                    this.log(mothership + " -\n    couldn't be reached: " + err.message + "\n");
                 });
-            });
+            }, this);
         });
 
-        this.addHiddenCommand("enablelogin", "/-enablelogin=true|false", 1, predAssign("enableLogin"), ["enable"]);
+        this.addHiddenCommand("enablelogin", "/-enablelogin=true|false", 1, predAssign("enableLogin", true), ["enable"]);
         this.addCommand("room", "/-room room challenge password (add the triple to the challenge collection). useful with /-loadrc", 3, function(room, challenge, password) {
             this.rooms.push([room, challenge, password]);
         }, ["addroom", "challenge", "addchallenge"]);
