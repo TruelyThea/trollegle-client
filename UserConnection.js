@@ -11,7 +11,6 @@ class UserConnection extends BasicConection {
         this.question = null;
         this.client = client;
         this.captchaSiteKey = "";
-        this.done = false;
         this.isConnected = false;
         this.tellQueue = [];
         this.seesTyping = false; // indicates whether the other participant sees typing
@@ -29,20 +28,21 @@ class UserConnection extends BasicConection {
             this.isConnected = false;
             // could be a fail from a old timedout request, after already disconnected formally)
             // so only if this is the current user:
-            if (this.isCurrentConnection())
+            if (!this.done)
                 this.client.died(ex.message);
             this.logVerbose("The following error was encounterd it is on " +
-                (this.isCurrentConnection() ? "the current" : "a previous") + " connection: ");
+                (this.done ? "a previous" : "the current") + " connection: ");
             this.logVerbose(ex.stack); // node Error's have a stack property
         };
     }
 
-    isCurrentConnection() {
-        return this.client.user === this;
+    // indicates whether this is the current connection
+    get done() {
+        return this.client.user !== this;
     }
 
     dispose() {
-        this.done = true;
+        // this.done = true;
     }
 
     establishChat() {
@@ -165,11 +165,11 @@ class UserConnection extends BasicConection {
                 this.logVerbose("[events]: " + JSON.stringify(data));
                 // before, it is true that _handleEvents wasn't called if the server returned null
                 // however, the user wasn't formally disconnected and it wasn't uncommon to see the lurkrate trail off with no response
-                // now this.died() is properly called if null is returned
+                // now this.client.died() is properly called if null is returned
                 // hopefully this fixes that problem...
                 if (!this.done) {
                     if (data === null) {
-                        this.died("Server was unreachable for too long and your connection was lost.");
+                        this.client.died("Server was unreachable for too long and your connection was lost.");
                     } else {
                         this.handleReply(data);
                         setTimeout(_handleEvents, 200);
@@ -182,7 +182,7 @@ class UserConnection extends BasicConection {
     }
 
     handleReply(data) {
-        if (this.client.user !== this) return; // could be formally disconnected already?
+        if (this.done) return; // could be formally disconnected already?
         if (_.isArray(data)) {
             this.handleEventsReply(data);
         } else if (_.isObject(data)) {
@@ -247,10 +247,10 @@ class UserConnection extends BasicConection {
                 this.pollQueue();
                 this.handleEvents();
             } else {
-                if (this.client.user == this)
-                    this.client.died("connection died before it could be established or server didn't include clientID");
-                else
+                if (this.done)
                     this.logVerbose("old connection died before it could be established");
+                else
+                    this.client.died("connection died before it could be established or server didn't include clientID");
             }
         });
     }
