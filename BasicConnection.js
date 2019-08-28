@@ -127,9 +127,6 @@ let fronts = _.range(32).map(function(i) {
     return new Front(i);
 });
 
-fronts[5].lastDirty = Infinity; // why are you staring at me
-fronts[9].lastDirty = Infinity;
-
 function chooseFront() {
     let front = _.sample(fronts);
     if (front.isDirty()) {

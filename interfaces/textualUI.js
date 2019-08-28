@@ -114,4 +114,3 @@ module.exports = function(onInput, onQuit) {
         screen.render();
     };
 };
-

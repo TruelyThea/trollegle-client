@@ -41,3 +41,7 @@ To modify the behavior of the client (e.g. in order to make a bot with automatic
 A [hangman bot example](./bots/hangman) is now available!
 
 To run it call `node ./bots/hangman/HangmanBot`. You might wish to manually set a lurkrate with `/-lurkrate 5`.
+
+## What if I see `captcha: <...>` ##
+
+This means that you need to solve a captcha for your ip in the browser before you can connect. However, if it turns out that you are captcha banned (a new captcha on every connection), you need to *takeover* a connection if you want to use the client. To do this, on startup (by a command-line argument) call `-takeover=<id>`, where `<id>` is replaced by the id that starts with `central2:`. If you have a connection open in the browser, you can inspect the network requests by opening developer tools. From there, search for a request to `/events` and locate its form data.

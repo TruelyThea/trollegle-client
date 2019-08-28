@@ -190,7 +190,7 @@ class UserConnection extends BasicConection {
                 this.id = data.clientID;
             if (data.events)
                 this.handleEventsReply(data.events);
-        } else  {
+        } else {
             this.log("Can't handle reply: " + data);
         }
     }
