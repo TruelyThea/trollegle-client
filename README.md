@@ -44,8 +44,12 @@ To run it call `node ./bots/hangman/HangmanBot`. You might wish to manually set 
 
 ## What if I see `captcha: <...>`? ##
 
-This means that you need to solve a captcha for your ip in the browser before you can connect. However, if it turns out that you are captcha banned (a new captcha on every connection), you need to *takeover* a connection if you want to use the client. To do this, on startup (by a command-line argument) call `-takeover=<id>`, where `<id>` is replaced by the id that starts with `central2:`. If you have a connection open in the browser, you can inspect the network requests by opening developer tools. From there, search for a request to `/events` and locate its form data.
+This means that you need to solve a captcha for your ip in the browser before you can connect. However, if it turns out that you are captcha banned (a new captcha on every connection), you need to *takeover* a connection if you want to use the client. To do this, on startup (by a command-line argument) call `-takeover=<id>`, where `<id>` is replaced by the id that starts with `central2:`. If you have a connection open in the browser, you probably can inspect the network requests by opening developer tools. From there, search for a request to `/events` and locate its form data.
+
+You also might be able to use a proxy to get around a captcha. You can set a SOCKS proxy with `/-proxy <host>:<port>`. If you'd prefer to use the direct connection after establishing the chat (faster, less chance of dying), call `/-proxymove on`.
 
 ## Why won't some types of messages display? ##
 
-Different types of messages are assigned different colors, and the closest approximation in the console is chosen. Probably the closest approximation of the color is the same as your background color. The command `/-color off` will turn off message colors if you are recieving bad results.
+By default, different types of messages are assigned different colors. It's possible that your terminal re-maps some of the base 16 colors by default. Your terminal might have options to change this color mapping, though. Also, the command `/-color off` will turn off message colors if you are recieving bad results.
+
+*Are you using Windows PowerShell?* By default, Windows PowerShell re-maps magenta and dark yellow, and sets a different background color. You can change your PowerShell properties if you wish so that these colors are mapped correctly.

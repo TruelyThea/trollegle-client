@@ -55,7 +55,7 @@ class UserConnection extends BasicConection {
         if (!this.questionMode) {
             this.logVerbose("!! Listening on front" + this.server);
         }
-        this.logVerbose("Starting chat on front " +  this.server);
+        this.logVerbose("Starting chat on front " + this.server);
 
         return super.establishChat().then(data => {
             if (!_.isObject(data)) { // *should* be string and data.trim() == ""
@@ -197,7 +197,7 @@ class UserConnection extends BasicConection {
             if (data.events)
                 this.handleEventsReply(data.events);
         } else {
-            this.log("Can't handle reply: " + data);
+            this.logVerbose("Can't handle reply: `" + data + "`");
         }
     }
 
