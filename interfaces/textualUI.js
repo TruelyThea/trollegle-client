@@ -5,8 +5,8 @@
 const blessed = require("blessed");
 require("../libraries/fortunate"); // bugfix
 
-module.exports = function(onInput, onQuit) {
-    var screen = blessed.screen({
+module.exports = function(onInput, onQuit, client) {
+    let screen = blessed.screen({
         smartCSR: true,
         // fullUnicode can cause display problems on Windows
         // the emoji get displayed as some questionmarks and whitespace, more than just the number of code points,
@@ -15,7 +15,7 @@ module.exports = function(onInput, onQuit) {
         fullUnicode: process.platform !== "win32" // display emoji if possible (hopefully)
     });
 
-    var body = blessed.log({
+    let body = blessed.log({
         parent: screen,
         top: 0,
         left: 0,
@@ -40,7 +40,7 @@ module.exports = function(onInput, onQuit) {
         content: '>'
     });
 
-    var inputBar = blessed.textbox({
+    let inputBar = blessed.textbox({
         parent: screen,
         bottom: 0,
         left: 1,
@@ -88,8 +88,8 @@ module.exports = function(onInput, onQuit) {
         return "[\\[\\<]" + (type != null ? "\\(" + type + "\\) " : "") + ".*[\\]\\>] .*";
     }
 
-    var colors = ["magenta", "yellow", "yellow", "green", "white", "green", "cyan", "cyan", "green", "white"];
-    var regexs = ["\\* .*", "\\| .*", "\\| .*? has (entered|left|joined|returned).*", "\\| You\\'ve been here for .+",
+    let colors = ["magenta", "yellow", "yellow", "green", "white", "green", "cyan", "cyan", "green", "white"];
+    let regexs = ["\\* .*", "\\| .*", "\\| .*? has (entered|left|joined|returned).*", "\\| You\\'ve been here for .+",
         msg(), msg("\D*"), msg("goss"), msg("private"), msg("(mute|uncd|flood|cmd)")].map(function(pattern) {
             return new RegExp("^\\d\\d\\:\\d\\d\\s+" + pattern + "$");
         });
@@ -99,18 +99,22 @@ module.exports = function(onInput, onQuit) {
     return function(text) {
         text = String(text); // if text is not a string, an error will be thrown in blessed.escape()
 
-        var color = regexs.reduce(function(acc, regex, i) {
-            return regex.test(text) ? colors[i] : acc;
-        }, "white");
+        if (client.color) {
+            let color = regexs.reduce(function(acc, regex, i) {
+                return regex.test(text) ? colors[i] : acc;
+            }, "white");
 
-        var date = "";
+            let date = "";
+            if (/^\d\d\:\d\d/.test(text)) {
+                date = text.slice(0,5);
+                text = text.slice(5);
+            }
 
-        if (/^\d\d\:\d\d/.test(text)) {
-            date = text.slice(0,5);
-            text = text.slice(5);
+            body.log(date + "{" + color + "-fg}" + blessed.escape(text) + "{/} ");
+        } else {
+            body.log(blessed.escape(text));
         }
 
-        body.log(date + "{" + color + "-fg}" + blessed.escape(text) + "{/} ");
         screen.render();
     };
 };

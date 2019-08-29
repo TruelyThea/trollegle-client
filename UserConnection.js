@@ -37,6 +37,12 @@ class UserConnection extends BasicConection {
     }
 
     // indicates whether this is the current connection
+    // This getter is equivalent to the regular property definition that was used with dispose(), and that still is in SimpleClient.java.
+    // Why? this.done (getter) == true if and only if this.dispose() were called:
+    //    (only if) A connection only exists if it was created by initiateUser(), so at one time it must have been the value of this.client.user
+    //    However, that is clearly no longer true, but this means that removeUser() was called, and thus this.dispose() was called;
+    //    (if) Conversely, if this.dispose() were called, then it must have been called by removeUser(), which implies this.client.user !== this
+    //        (there is no way for it to become the value of this.client.user again after calling removeUser(): the reference doesn't exist anymore)
     get done() {
         return this.client.user !== this;
     }

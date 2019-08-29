@@ -30,6 +30,7 @@ class Client {
         this.lang = "en";
         this.fileStream = null;
         this.display = true;
+        this.color = true;
         this.style = Client.style.TRADITIONAL;
         this.enableLogin = true;
         this.rooms = [];
@@ -65,7 +66,7 @@ class Client {
             }
         };
 
-        this.logInner = require("./interfaces/textualUI")(onInput, onQuit);
+        this.logInner = require("./interfaces/textualUI")(onInput, onQuit, this);
     }
 
     run() {
@@ -105,8 +106,10 @@ class Client {
     }
 
     initiateUser() {
-        if (this.user) // /-c called twice
+        if (this.user) { // /-c called twice
+            this.log("A connection already is present. If you wish to start a new connection, call /-leave first.");
             return;
+        }
 
         this.user = new UserConnection(this);
 

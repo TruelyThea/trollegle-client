@@ -45,3 +45,7 @@ To run it call `node ./bots/hangman/HangmanBot`. You might wish to manually set 
 ## What if I see `captcha: <...>`? ##
 
 This means that you need to solve a captcha for your ip in the browser before you can connect. However, if it turns out that you are captcha banned (a new captcha on every connection), you need to *takeover* a connection if you want to use the client. To do this, on startup (by a command-line argument) call `-takeover=<id>`, where `<id>` is replaced by the id that starts with `central2:`. If you have a connection open in the browser, you can inspect the network requests by opening developer tools. From there, search for a request to `/events` and locate its form data.
+
+## Why won't some types of messages display? ##
+
+Different types of messages are assigned different colors, and the closest approximation in the console is chosen. Probably the closest approximation of the color is the same as your background color. The command `/-color off` will turn off message colors if you are recieving bad results.
