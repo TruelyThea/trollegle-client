@@ -1,10 +1,12 @@
-This is an extendable trollegle client written in JavaScript. Another (SimpeClient.java) is included in the [trollegle repository](https://gitlab.com/jtrygva/trollegle).
+This is an extensible trollegle client written in JavaScript. Another (`SimpeClient.java`) is included in the [trollegle repository](https://gitlab.com/jtrygva/trollegle).
 
-To run this, you must have [node.js](https://nodejs.org) installed. In your clone of the repository (you may download the zip file instead) you must call `npm install`. Then call `node client` to start the client.
+To run this, you must have [node.js](https://nodejs.org) installed. In your clone or copy of the repository you must call `npm install`. Then call `npm start` or `node index` to start the client.
 
 After the client is running, call `/-navigate` for help with the UI and call `/-help full` for a list of commands, and a general description.
 
-This client doesn't support tor circuits at the moment, but besides that it supports all of the features of SimpleClient.java. It also supports features that aren't included in SimpleClient:
+### Feature Comparison ###
+
+This client doesn't support tor circuits at the moment, but besides that it supports all of the features of `SimpleClient.java`. It also supports features that aren't included in SimpleClient:
 
 * actual file logging with `/-out` instead of having to rely on standard output redirection in the execution line.
 
@@ -25,7 +27,7 @@ This client doesn't support tor circuits at the moment, but besides that it supp
 ## Main Benefit ##
 
 
-The *main benefit* of this client comes from it's file organization and extensibility.
+The *main benefit* of this client comes from it's file organization and extensibility. A [partial documentation and explaination](./DOCUMENTATION.md) of `trollegle-client` is available.
 
 To add new commands, simply 
 
@@ -33,14 +35,13 @@ To add new commands, simply
 
 2. Then, extend `Client.js`, override `makeBehavior()`, and include the `if (require.main === module)` check in your file.
 
-
-To modify the behavior of the client (e.g. in order to make a bot with automatic behavior, perhaps to let users play hangman), simply extend `Client.js`, override the event callback methods, and include the `if (require.main === module)` check.
+To modify the behavior of the client (e.g. in order to make a bot with automatic behavior, perhaps to let users play hangman), simply extend `Client.js`, add event listeners, and include the `if (require.main === module)` check.
 
 ### Example ###
 
 A [hangman bot example](./bots/hangman) is now available!
 
-To run it call `node ./bots/hangman/HangmanBot`. You might wish to manually set a lurkrate with `/-lurkrate 5`.
+To run it, navigate to its subdirectory, call `npm install`, and then call `npm start`. You might wish to manually set a lurkrate with `/-lurkrate 5`.
 
 ## What if I see `captcha: <...>`? ##
 

@@ -1,5 +1,5 @@
 const _ = require("underscore");
-const Bot = require("../Bot");
+const {Bot} = require("trollegle-client");
 
 var phrases = require("./phrases");
 
@@ -65,26 +65,21 @@ class HangmanBot extends Bot {
         }
     }
 
-    connected() {
-        super.connected();
-        this.initiatePhrase();
+    registerListeners(user) {
+        return super.registerListeners(user)
+            .once("established", this.initiatePhrase, this)
+            .on("message", data => {
+                    // the site server seems to insert random space in messages
+                    data = data.trim().replace(/\s+/g, " ");
+                    let guess = data.match(/^[\[\<]\(private\) (.+)[\]\>] (.+)$/);
+                    if (guess) this.update(guess[1], guess[2]);
+            });
     }
 
     begin() {
         setTimeout(this.say.bind(this, "/nick BeepBoop"), 4e3);
         setTimeout(this.say.bind(this, "I am a hangman bot. I accept guesses via private messages."), 8e3);
         setTimeout(this.sayUpdates.bind(this), 14e3);
-    }
-
-    message(data) {
-        super.message(data);
-        // the site server seems to insert random space in messages
-        data = data.trim().replace(/\s+/g, " ");
-
-        let guess = data.match(/^[\[\<]\(private\) (.+)[\]\>] (.+)$/);
-        if (guess) {
-            this.update(guess[1], guess[2]);
-        }
     }
 }
 
