@@ -39,7 +39,7 @@ To modify the behavior of the client (e.g. in order to make a bot with automatic
 
 ### Example ###
 
-A [hangman bot example](./bots/hangman) is now available!
+A [hangman bot example](./examples/HangmanBot) is now available!
 
 To run it, navigate to its subdirectory, call `npm install`, and then call `npm start`. You might wish to manually set a lurkrate with `/-lurkrate 5`.
 
@@ -54,3 +54,7 @@ You also might be able to use a proxy to get around a captcha. You can set a SOC
 By default, different types of messages are assigned different colors. It's possible that your terminal re-maps some of the base 16 colors by default. Your terminal might have options to change this color mapping, though. Also, the command `/-color off` will turn off message colors if you are recieving bad results.
 
 *Are you using Windows PowerShell?* By default, Windows PowerShell re-maps magenta and dark yellow, and sets a different background color. You can change your PowerShell properties if you wish so that these colors are mapped correctly.
+
+## Why does the client hang sometimes? ##
+
+If you're on Windows 10, the issue is probably that you've selected some text, putting the process into selection mode. When a program tries to output text in selection mode, its process is paused. You can tell that a process is in selection mode because the title in the banner is prepended with "Select ". This is an issue with the Windows 10 console, not trollegle-client. You can allow the process to resume by pressing escape. You can also [disable selection mode](https://stackoverflow.com/questions/33883530/why-is-my-command-prompt-freezing-on-windows-10) if you wish.

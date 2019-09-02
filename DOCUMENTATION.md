@@ -2,7 +2,7 @@ Documentation for `trollegle-client` version `2.0.0`:
 
 *What's new in version two?* The code has been restructured a little, and now `Connection` is an `EventEmitter` and doesn't call `Client` methods.
 
-This is an extensible command-line client for trollegle. The [hangman bot example](./bots/hangman) illustrates how you can extend the Client to make a bot. To run it, navigate to its subdirectory, call `npm install`, and then call `npm start`.
+This is an extensible command-line client for trollegle. The [hangman bot example](./examples/HangmanBot) illustrates how you can extend the Client to make a bot. To run it, navigate to its subdirectory, call `npm install`, and then call `npm start`.
 
 ## Selected Table of Contents ##
 
