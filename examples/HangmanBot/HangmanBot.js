@@ -1,7 +1,7 @@
 const _ = require("underscore");
 const {Bot} = require("trollegle-client");
 
-var phrases = require("./phrases");
+var phrases = require("./phrases").concat(require("./neko").map(word => word.toLowerCase()));
 
 class HangmanBot extends Bot {
     constructor() {

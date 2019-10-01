@@ -1,0 +1,1 @@
+`neko.json` is a collection of daily passowrds from [Neko Atsume](https://www.nekoatsume.com/en/). [Here](https://neko.servbox.eu/history_en.php) is the source of the collection. I personally compiled `phrases.json` to be a list of nostalgic, festive, or energetic words that wouldn't be interpreted as a second meaning.
