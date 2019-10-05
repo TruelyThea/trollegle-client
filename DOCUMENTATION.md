@@ -91,7 +91,7 @@ Takes a client context with which to call commands, the client is bound to the d
 
 * `addCommand(commandName, helpString, minimumArgLen, bodyCallback, aliasNamesArray)` - if command or alias already exists, it is overriden
 
-* `call(commandName, argumentsArray)` - `commandName` can be the name or alias of command. When a command is called, the events with the command's main name and call name are emitted.
+* `call(commandName, argumentsArray)` - `commandName` can be the name or alias of command. When a command is called, the events with the command's main name and call name are emitted, and the listeners recieve the array of arguments to the command.
 
 ### <a name="clientbehavior"></a> ClientBehavior ###
 

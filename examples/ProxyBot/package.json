@@ -9,7 +9,7 @@
   },
   "author": "Thea (theatruely@gmail.com)",
   "dependencies": {
-    "trollegle-client": "github:TruelyThea/trollegle-client#semver:^2.0.0",
+    "trollegle-client": "github:TruelyThea/trollegle-client#semver:^2.1.0",
     "underscore": "^1.9.1"
   }
 }

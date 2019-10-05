@@ -24,7 +24,7 @@ class ProxyBot extends Bot {
     searchProxy() {
         if (_.all(this.proxies, "searching") || !this.user || !this.user.isConnected || !this.isAdmin()) {
             return new Promise((resolve) => {
-                setTimeout(resolve, 5e3);
+                setTimeout(resolve, 15 * 60e3);
             }).then(() => this.searchProxy());
         } else {
             let proxy = _.min(this.proxies, function(proxy) {
