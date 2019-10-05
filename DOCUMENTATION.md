@@ -71,9 +71,11 @@ Instances of `Connection` emit many types of events.
 
 * `question`, `topics`
 
-In addition, every event that the server returns from a request to `/events` is emitted.
+In addition, every event that the server returns from a request to `/events` is emitted, with the prefix of `~`.
 
 ### <a name="behavior"></a> Behavior ###
+
+`Behavior` now inherits from `EventEmitter`.
 
 #### Constructor ####
 
@@ -89,7 +91,7 @@ Takes a client context with which to call commands, the client is bound to the d
 
 * `addCommand(commandName, helpString, minimumArgLen, bodyCallback, aliasNamesArray)` - if command or alias already exists, it is overriden
 
-* `call(commandName, argumentsArray)` - `commandName` can be the name or alias of command
+* `call(commandName, argumentsArray)` - `commandName` can be the name or alias of command. When a command is called, the events with the command's main name and call name are emitted.
 
 ### <a name="clientbehavior"></a> ClientBehavior ###
 
@@ -158,6 +160,12 @@ This is a subclass of `Client`. It tries to automatically pass the pre-room. Thi
 #### Constructor ####
 
     new Bot()
+
+### Properties ###
+
+* `list` - the current user list, what is returned by `/bot /list`
+
+* `lastUpdate` - the last update to `list`
 
 #### Methods ####
 

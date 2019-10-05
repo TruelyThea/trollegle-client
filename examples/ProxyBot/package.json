@@ -1,0 +1,15 @@
+{
+  "name": "proxybot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ProxyBot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ProxyBot.js"
+  },
+  "author": "Thea (theatruely@gmail.com)",
+  "dependencies": {
+    "trollegle-client": "github:TruelyThea/trollegle-client#semver:^2.0.0",
+    "underscore": "^1.9.1"
+  }
+}
