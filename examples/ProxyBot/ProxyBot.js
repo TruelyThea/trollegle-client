@@ -22,13 +22,14 @@ class ProxyBot extends Bot {
     }
 
     searchProxy() {
-        if (_.all(this.proxies, "searching") || !this.user || !this.user.isConnected || !this.isAdmin()) {
+        if (_.all(this.proxies, function(proxy) { return proxy.searching || Date.now() - proxy.lastChecked < 15 * 60e3; }) ||
+                !this.user || !this.user.isConnected || !this.isAdmin()) {
             return new Promise((resolve) => {
                 setTimeout(resolve, 5e3);
             }).then(() => this.searchProxy());
         } else {
             let proxy = _.min(this.proxies, function(proxy) {
-                return proxy.searching || Date.now() - proxy.lastChecked < 15 * 60e3 ? Infinity : proxy.lastChecked;
+                return proxy.searching ? Infinity : proxy.lastChecked;
             });
             proxy.searching = true;
 
