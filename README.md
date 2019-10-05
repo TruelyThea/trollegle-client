@@ -58,3 +58,7 @@ By default, different types of messages are assigned different colors. It's poss
 ## Why does the client hang sometimes? ##
 
 If you're on Windows 10, the issue is probably that you've selected some text, putting the process into selection mode. When a program tries to output text in selection mode, its process is paused. You can tell that a process is in selection mode because the title in the banner is prepended with "Select ". This is an issue with the Windows 10 console, not trollegle-client. You can allow the process to resume by pressing escape. You can also [disable selection mode](https://stackoverflow.com/questions/33883530/why-is-my-command-prompt-freezing-on-windows-10) if you wish.
+
+## Why aren't ProxyBot or HangmanBot working? ##
+
+You need to call `npm install` in the directory and have [git](https://git-scm.com/downloads) installed.

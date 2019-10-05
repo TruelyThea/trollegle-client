@@ -42,21 +42,22 @@ class ProxyBot extends Bot {
             });
 
             return new Promise((resolve, reject) => {
-                user.on("captcha", () => resolve(false));
-                user.on("ban", () => resolve(false));
-                user.on("died", () => resolve(false));
-                user.on("established", () => resolve(true));
-                user.on("disconnected", () => resolve(true));
+                user.on("captcha", () => resolve([false, "captcha"]));
+                user.on("ban", () => resolve([false, "ban"]));
+                user.on("died", () => resolve([false, "died"]));
+                user.on("established", () => resolve([true, "success"]));
+                user.on("disconnected", () => resolve([true, "success"]));
                 ["established", "disconnected", "died", "captcha", "ban", "message"].forEach(function(event) {
                     user.on(event, () => this.logVerbose(proxy.proxy + " " + event));
                 }, this);
                 
                 user.run();
-            }).then((working) => {
-                if (working) this.say("/!addproxy " + proxy.proxy.slice(9));
+            }).then((results) => {
+                if (results[0]) this.say("/!addproxy " + proxy.proxy.slice(9));
                 proxy.lastChecked = Date.now();
                 proxy.searching = false;
-                proxy.working = working;
+                proxy.working = results[0];
+                proxy.reason = results[1];
                 this.save();
                 user.sendDisconnect();
                 user.dispose();
@@ -78,15 +79,20 @@ class ProxyBot extends Bot {
     load() {
         return new Promise((resolve, reject) => {
             fs.readFile(path.join(__dirname, "/status.json"), "utf8", (err, data) => {
-                if (err) reject(err);
-                else resolve(this.proxies = JSON.parse(data));
+                resolve(err ? null : this.proxies = JSON.parse(data));
             });
         });
     }
 
     save() {
-        fs.writeFile(path.join(__dirname, "/status.json"), JSON.stringify(this.proxies), (err) => {
-            if (err) this.log("error writting status.json file");
+        return new Promise((resolve, reject) => {
+            fs.writeFile(path.join(__dirname, "/status.json"), JSON.stringify(this.proxies), (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        }).catch(function(err) {
+            this.log("error writting status.json file: " + err.message);
+            this.logVerbose(err);
         });
     }
 }
