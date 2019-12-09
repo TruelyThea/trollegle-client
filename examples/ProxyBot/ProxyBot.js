@@ -76,7 +76,7 @@ class ProxyBot extends Bot {
                 user.run();
             }).then((event) => {
                 if (updateProxy(choice, event))
-                    this.sendProxy(choice.proxy.slice(9));
+                    this.sendProxy(choice.proxy.slice("socks://".length));
             }).finally(() => {
                 choice.lastChecked = Date.now();
                 choice.searching = false;
