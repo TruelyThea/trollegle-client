@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Trollegle</title>
+    <!-- I have commented this out because a dependency, tput, fails this -->
+    <!--<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />-->
+    <link rel="icon" href="./trollegle.ico">
+    <link rel="stylesheet" type="text/css" href="./navbar.css" />
+    <link rel="stylesheet" type="text/css" href="./table.css" />
+    <link rel="stylesheet" type="text/css" href="./loader.css" />
+  </head>
+  <body>
+    <div class="navbar">
+        <a onclick="showTab('docs-commands')">📖 Commands</a>
+        <a onclick="showTab('docs-api')">📖 API</a>
+        <a onclick="showTab('multirc')">⚙️ <code>.multirc</code></a>
+        <a onclick="showTab('pulses'); refresh();">📶 Pulses</a>
+        <a onclick="showTab('viewer');">🔎</a>
+        <a onclick="add();">➕</a>
+    </div>
+
+    <div class="main">
+        <div id="docs-commands">
+            <div id="commands">
+                <h3>Commands</h3>
+                Filter: <input type="text" id="filter" name="filter">
+                <button type="button" onclick="filterHelp()">Submit</button>
+                <table>
+                    <tr>
+                        <th>Command</th>
+                        <th>Aliases</th>
+                        <th>Usage</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div id="docs-api" style="display: none;"></div>
+
+        <div id="pulses" style="display: none;">
+            <button onclick="refresh();">Refresh</button>
+            <div id="loading" class="la-ball-spin-clockwise la-dark" style="display: none;">
+                <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+            </div>
+            <div id= "BellaWhiskey">
+                <h3>BellaWhiskey</h3>
+                <div class="result"></div>
+            </div>
+        </div>
+
+        <div id="multirc" style="display: none; height: 100%;">
+            <textarea style="width: 100%; height: 60%;"></textarea>
+            <button id="saveMultirc">Save</button><br><br>
+
+            A line beginning with <code>#</code> is a comment and won't have any effect. You can use this to tell people what a comand does or why it is there. Or, you can use this to make any note.<br><br>
+
+            You can add any command or message to this file in the textbox above.<br><br>
+
+            <button id="showColors">Show Colors</button> <button id="hideColors">Hide Colors</button> (default: shown)<br><br>
+
+            Lurk Rate: <input id="lurkRate" type="text"> <button id="addLurkRate">Add</button> Lurk rate is how often the lurk message is sent during inactivity to keep from being kicked. It should be a positive integer. If it is less than 60, it is a number of minutes. Otherwise, if it is less than 3541, it is a number of seconds. Otherwise it is a number of milliseconds.<br><br>
+
+            Lurk Message: <input id="lurkMessage" type="text"> <button id="addLurkMessage">Add</button> The value should be a list of commands and messages separated by the pipe (<code>|</code>) character, one of which will be randomly sent when every <code>%lt lurk rate &gt</code> of inactivity.<br><br>
+
+            Loging to an output file: <button id="outDir">Choose Directory</button> Chosen: <code><span id="chosenOutDir"></span></code> Output Filename: <input id="outName" type="text"> <code>:today:</code> will be replaced with today's date (UTC time). Other variables surrounded by colons may be filled in the query string. For instance if I put <code>:room:-:tooday:.log</code> as the filename, I could fill in the <code>:room:</code> in the query string of the <code>/-loadrc</code> command with something like <code>?room=bellawhiskey</code>. <button id="addOut">Add</button><br><br>
+
+            Add Room Challenge: Room Name: <input id="roomName" type="text"> Room Challenge (Password question): <input id="roomChallenge" type="text"> Room Password: <input id="roomPassword" type="text"> <button id="addRoom">Add</button> For this, <code>/-enablelogin</code> should be switched on (as it is by default).
+        </div>
+
+        <div id="viewer" style="display: none; height: 100%;">
+            <p>View a past log:</p>
+            <div style="width: 100%; height: 70%; resize: none; overflow: scroll; background: black;" class="log"></div>
+            <button id="loadLog">Load</button>  <input type="checkbox" id="logColor" name="logColor"
+            checked> <label for="logColor">color</label>
+        </div>
+    </div>
+
+    <script src="./gui.js"></script>
+  </body>
+</html>

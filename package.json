@@ -1,21 +1,29 @@
 {
   "name": "trollegle-client",
   "description": "An extendable node.js trollegle client.",
-  "main": "index.js",
-  "version": "2.1.0",
+  "main": "./gui/index.js",
+  "version": "2.2.0",
   "dependencies": {
     "axios": "^0.19.0",
     "blessed": "^0.1.81",
+    "electron": "^8.2.5",
     "eventemitter3": "^4.0.0",
+    "showdown": "^1.9.1",
     "socks-proxy-agent": "^4.0.2",
     "underscore": "^1.9.1"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "electron ./gui/index.js",
+    "bundle": "electron-packager . --out=./bundles/1 --icon=./gui/trollegle.ico --overwrite",
+    "gui": "electron ./gui/index.js",
+    "cli": "node index.js"
   },
   "author": "Thea (theatruely@gmail.com)",
   "repository": {
     "type": "git",
     "url": "https://github.com/TruelyThea/trollegle-client.git"
+  },
+  "devDependencies": {
+    "electron-packager": "^14.2.1"
   }
 }

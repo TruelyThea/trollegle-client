@@ -4,6 +4,10 @@ To run this, you must have [node.js](https://nodejs.org) installed. In your clon
 
 After the client is running, call `/-navigate` for help with the UI and call `/-help full` for a list of commands, and a general description.
 
+### GUI ###
+
+Now there is a graphical user interface, as an electron app. To use the gui, call `npm run gui`. To bundle the gui into an executable, call `npm run bundle`. To use the command-line interface instead, call `npm run cli`.
+
 ### Feature Comparison ###
 
 This client doesn't support tor circuits at the moment, but besides that it supports all of the features of `SimpleClient.java`. It also supports features that aren't included in SimpleClient:

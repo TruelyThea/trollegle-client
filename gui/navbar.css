@@ -1,0 +1,48 @@
+/* modified from https://www.w3schools.com/howto/howto_css_fixed_menu.asp */
+
+/* The navigation bar */
+.navbar {
+  overflow: hidden;
+  background-color: rgb(42, 9, 102);
+  position: fixed; /* Set the navbar to fixed position */
+  top: 0; /* Position the navbar at the top of the page */
+  left: 0;
+  width: 100%; /* Full width */
+}
+
+/* Links inside the navbar */
+.navbar a {
+  float: left;
+  display: block;
+  color: #e4c3ff;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change background on mouse-over */
+.navbar a:hover {
+  background: rgb(119, 81, 168);
+  color: rgb(107, 178, 219);
+}
+
+/* Main content */
+.main {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  margin-top: 30px; /* Add a top margin to avoid content overlay */
+  max-width: 600px;
+}
+
+/* from https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting */
+
+.navbar a {
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Opera and Firefox */
+}
