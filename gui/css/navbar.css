@@ -31,8 +31,7 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
-  margin-top: 30px; /* Add a top margin to avoid content overlay */
-  max-width: 600px;
+    margin-top: 30px; /* Add a top margin to avoid content overlay */
 }
 
 /* from https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting */

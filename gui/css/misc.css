@@ -1,0 +1,24 @@
+.log {
+    width: 100%;
+    height: 70%;
+    resize: none;
+    overflow-y: scroll;
+    background: black;
+}
+
+/* see https://www.w3schools.com/cssref/tryit.asp?filename=trycss3_media_columns */
+
+.row {
+    height: 100%;
+}
+
+.oneColumn {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tabCell {
+    max-width: 600px;
+    height: 90%;
+}

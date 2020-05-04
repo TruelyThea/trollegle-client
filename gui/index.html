@@ -6,9 +6,11 @@
     <!-- I have commented this out because a dependency, tput, fails this -->
     <!--<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />-->
     <link rel="icon" href="./trollegle.ico">
-    <link rel="stylesheet" type="text/css" href="./navbar.css" />
-    <link rel="stylesheet" type="text/css" href="./table.css" />
-    <link rel="stylesheet" type="text/css" href="./loader.css" />
+    <link rel="stylesheet" type="text/css" href="./css/navbar.css" />
+    <link rel="stylesheet" type="text/css" href="./css/table.css" />
+    <link rel="stylesheet" type="text/css" href="./css/loader.css" />
+    <link rel="stylesheet" type="text/css" href="./css/tooltip.css" />
+    <link rel="stylesheet" type="text/css" href="./css/misc.css" />
   </head>
   <body>
     <div class="navbar">
@@ -21,7 +23,7 @@
     </div>
 
     <div class="main">
-        <div id="docs-commands">
+        <div id="docs-commands" class="tabCell oneColumn">
             <div id="commands">
                 <h3>Commands</h3>
                 Filter: <input type="text" id="filter" name="filter">
@@ -36,9 +38,10 @@
             </div>
         </div>
 
-        <div id="docs-api" style="display: none;"></div>
+        <div id="docs-api" style="display: none;" class="tabCell oneColumn"></div>
 
-        <div id="pulses" style="display: none;">
+        <div id="pulses" style="display: none;" class="tabCell oneColumn">
+            <h3>Current Status of the Mothership(s)</h3>
             <button onclick="refresh();">Refresh</button>
             <div id="loading" class="la-ball-spin-clockwise la-dark" style="display: none;">
                 <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
@@ -49,33 +52,104 @@
             </div>
         </div>
 
-        <div id="multirc" style="display: none; height: 100%;">
-            <textarea style="width: 100%; height: 60%;"></textarea>
-            <button id="saveMultirc">Save</button><br><br>
+        <div id="multirc" style="display: none; height: 100%;" class="row">
+            <div class="tabCell left">
+                <textarea style="width: 100%; height: 60%;"></textarea>
+                <button id="saveMultirc">Save</button><br><br>
+    
+                <p>A line beginning with <code>#</code> is a comment and won't have any effect. You can use this to tell people what a comand does or why it is there. Or, you can use this to make any note.</p>
+                
+                <p>You can add any command or message to this file in the textbox above.</p>
+            </div>
 
-            A line beginning with <code>#</code> is a comment and won't have any effect. You can use this to tell people what a comand does or why it is there. Or, you can use this to make any note.<br><br>
+            <div class="tabCell right">
+                <p><button id="showColors">Show Colors</button> <button id="hideColors">Hide Colors</button> (default: shown)</p>
 
-            You can add any command or message to this file in the textbox above.<br><br>
-
-            <button id="showColors">Show Colors</button> <button id="hideColors">Hide Colors</button> (default: shown)<br><br>
-
-            Lurk Rate: <input id="lurkRate" type="text"> <button id="addLurkRate">Add</button> Lurk rate is how often the lurk message is sent during inactivity to keep from being kicked. It should be a positive integer. If it is less than 60, it is a number of minutes. Otherwise, if it is less than 3541, it is a number of seconds. Otherwise it is a number of milliseconds.<br><br>
-
-            Lurk Message: <input id="lurkMessage" type="text"> <button id="addLurkMessage">Add</button> The value should be a list of commands and messages separated by the pipe (<code>|</code>) character, one of which will be randomly sent when every <code>%lt lurk rate &gt</code> of inactivity.<br><br>
-
-            Loging to an output file: <button id="outDir">Choose Directory</button> Chosen: <code><span id="chosenOutDir"></span></code> Output Filename: <input id="outName" type="text"> <code>:today:</code> will be replaced with today's date (UTC time). Other variables surrounded by colons may be filled in the query string. For instance if I put <code>:room:-:tooday:.log</code> as the filename, I could fill in the <code>:room:</code> in the query string of the <code>/-loadrc</code> command with something like <code>?room=bellawhiskey</code>. <button id="addOut">Add</button><br><br>
-
-            Add Room Challenge: Room Name: <input id="roomName" type="text"> Room Challenge (Password question): <input id="roomChallenge" type="text"> Room Password: <input id="roomPassword" type="text"> <button id="addRoom">Add</button> For this, <code>/-enablelogin</code> should be switched on (as it is by default).
+                <form id="lurkRate">
+                    <div class="tooltip">Lurk Rate
+                        <span class="tooltiptext">Lurk rate is how often the lurk message is sent during inactivity to keep from being kicked. It should be a positive integer. If it is less than 60, it is a number of minutes. Otherwise, if it is less than 3541, it is a number of seconds. Otherwise it is a number of milliseconds.</span>
+                    </div>: <input type="text" name="value">
+                    <input type="submit" value="Add">
+                </form>
+    
+                <form id="lurkMessage">
+                    <div class="tooltip">Lurk Message
+                        <span class="tooltiptext">The value should be a list of commands and messages separated by the pipe (<code>|</code>) character, one of which will be randomly sent when every <code>%lt lurk rate &gt</code> of inactivity.</span>
+                    </div>: <input type="text" name="value">
+                    <input type="submit" value="Add">
+                </form>
+                
+                <form id="output">
+                    <p>Loging to an output file: <button id="outDir" type="button">Choose Directory</button></p>
+                    <p>Chosen: <code><span id="chosenOutDir"></span></code></p>
+                    <p><div class="tooltip">Output Filename
+                        <span class="tooltiptext"><code>:today:</code> will be replaced with today's date (UTC time). Other variables surrounded by colons may be filled in the query string. For instance if I put <code>:room:-:tooday:.log</code> as the filename, I could fill in the <code>:room:</code> in the query string of the <code>/-loadrc</code> command with something like <code>?room=bellawhiskey</code>.</span>
+                    </div>: <input type="text" name="name"></p>
+                    <input type="submit" value="Add">
+                </form>
+                
+                <form id="room">
+                    <p>Add Room Challenge: Room Name: <input name="name" type="text"></p>
+                    <p>Room Challenge (Password question): <input name="challenge" type="text"></p>
+                    <p>Room Password: <input name="password" type="text"></p>
+                    <input type="submit" value="Add">
+                    <p>For this, <code>/-enablelogin</code> should be switched on (as it is by default).</p>
+                </form>
+            </div>
         </div>
-
-        <div id="viewer" style="display: none; height: 100%;">
-            <p>View a past log:</p>
-            <div style="width: 100%; height: 70%; resize: none; overflow: scroll; background: black;" class="log"></div>
-            <button id="loadLog">Load</button>  <input type="checkbox" id="logColor" name="logColor"
-            checked> <label for="logColor">color</label>
-        </div>
+        
+    <div id="viewer" style="display: none; height: 100%;" class="tabCell oneColumn">
+        <h3>View a past log:</h3>
+        <div class="log"></div>
+        <button id="loadLog">Load</button>
+        <input type="checkbox" id="logColor" name="logColor" checked>
+        <label for="logColor">color</label>
     </div>
 
-    <script src="./gui.js"></script>
+    <div id="template" style="display: none;">
+        <div style="display: none; width: 100%; height: 100%;" class="chat row">
+            <div class="tabCell left">
+                <div class="log"></div>
+                <form>
+                    <textarea style='width: 100%; height: 10%; resize: none; margin-top:5px;' name="message"></textarea>
+                    <input type="submit"></input>
+                    <p>Enter submits sends the message, and shift + enter gives a new line.</p>
+                </form>
+                
+                <p>
+                    <button class="leave">leave</button>
+                    Connect: Topics: <input class="topics" type="text">
+                    <button class="connect">Connect</button>
+                </p>
+            </div>
+
+            <div class="tabCell right">
+                <form>
+                    <p>Load a <code>.multirc</code> file: <button class="multirc" type="button">load file</button></p>
+                    <p>Selected: <code><span class="path">(none)</span></code></p>
+                    <p>
+                        <div class="tooltip">Options
+                            <span class="tooltiptext">
+                                The options are given as a query string of key value pairs, like what sometimes appears after a url.
+                                For example, if I had a variable <code>:room:</code> representing a room on trollegle, 
+                                    I wanted to fill that variable with <code>bellawhiskey</code>, 
+                                    and I had no more variables to fill,
+                                I could type <code>?room=bellawhiskey</code>.
+                            </span>
+                        </div>: <input name="options" type="text" value="?">.</p>
+                        <input type="submit"></input>
+                </form>
+                <p><em>Side note</em>: The text in <code>/-navigate</code> does not apply for the graphical user interface (at least yet).</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="./js/main.js"></script>
+    <script src="./js/commands.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/multirc.js"></script>
+    <script src="./js/pulses.js"></script>
+    <script src="./js/viewer.js"></script>
+    <script src="./js/client.js"></script>
   </body>
 </html>
