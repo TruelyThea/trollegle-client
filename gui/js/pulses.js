@@ -16,7 +16,7 @@ let refresh = (function() {
                 if (res.data.pulses.length == 0) {
                     return "<p> No rooms are listed on this mothership.</p> <p>Last Updated: " + msToTime(res.data.lastUpdate) + "</p>";
                 } else {
-                    return "<table>" + res.data.pulses.map(pulsesTemplate).join(" ") + "</table> <p>Last Updated: " + msToTime(res.data.lastUpdate) + "</p>";
+                    return "<table><tr><th>Name</th><th>Interests</th><th>Last Pulse</th></tr>" + res.data.pulses.map(pulsesTemplate).join(" ") + "</table> <p>Last Updated: " + msToTime(res.data.lastUpdate) + "</p>";
                 }
             }).catch(err => {
                 return `<p>${mothership} couldn't be reached: ${err.toString()}.</p>`;
@@ -29,6 +29,6 @@ let refresh = (function() {
     };
 
     refresh();
-    
+
     return refresh;
 })();

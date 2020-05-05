@@ -52,13 +52,14 @@ let resize = function() {
             elt.style.float = "none";
             elt.style.width = Math.max(600, width) + "px";
         } else if (width <= 1205) {
-            elt.style.marginLeft = "0px";
-            elt.style.marginRight = "0px";
-            elt.style.width = "50%";
             elt.style.float = "left";
+            elt.style.width = "50%";
+            elt.style.marginLeft = width/2 - elt.clientWidth + 5 + "px";
+            elt.style.marginRight = "inherit";
         } else {
             elt.style.float = "left";
-            elt.style.marginLeft = width / 2 - 600 + "px";
+            elt.style.width = "600px";
+            elt.style.marginLeft = width / 2 - 600 - 10 + "px";
             elt.style.marginRight = "inherit";
         }
     });
@@ -71,13 +72,14 @@ let resize = function() {
             elt.style.float = "none";
             elt.style.width = Math.max(600, width) + "px";
         } else if (width <= 1205) {
-            elt.style.marginRight = "inherit";
-            elt.style.width = "calc(50%-5px)";
-            elt.style.marginLeft = "5px";
             elt.style.float = "right";
+            elt.style.width = "calc(50% - 20px)";
+            elt.style.marginRight = width/2 - elt.clientWidth - 25 + "px";
+            elt.style.marginLeft = "inherit";
         } else {
             elt.style.float = "right";
-            elt.style.marginRight = width / 2 - 600 - 20 + "px";
+            elt.style.width = 600 - 20 + "px";
+            elt.style.marginRight = width / 2 - 600 + 10 + "px";
             elt.style.marginLeft = "inherit";
         }
     });
@@ -105,7 +107,7 @@ const ChatLog = (function() {
         let lines = htmlEscape({text}).split(/\r?\n/);
 
         let color = doColor ? regexs.reduce(function(acc, regex, i) {
-            return regex.test(lines[0]) ? colors[i] : acc;
+            return regex.test(text) ? colors[i] : acc;
         }, "white") : "white";
 
         let date = "";
@@ -139,7 +141,7 @@ const ChatLog = (function() {
             div.innerHTML = lineContent(text, color);
             this.element.appendChild(div);
         }
-        
+
         clear() {
             this.element.innerHTML = "";
         }

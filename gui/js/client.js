@@ -26,7 +26,7 @@ let add = (function() {
                 let log = this.chatLog.element;
                 // https://stackoverflow.com/questions/876115/how-can-i-determine-if-a-div-is-scrolled-to-the-bottom
                 let wasNotScrolled = log.scrollHeight - log.scrollTop - log.clientHeight < 1;
-                this.chatLog.log(text);
+                this.chatLog.log(text, this.color);
                 if (wasNotScrolled) log.scrollTop = log.scrollHeight;
             };
         }
@@ -81,7 +81,7 @@ let add = (function() {
             messageForm.elements.message.value = `/-leave`;
             submitMsg();
         });
-        
+
         tab.querySelector(".connect").addEventListener("click", () => {
             messageForm.elements.message.value = `/-c ${tab.querySelector(".topics").value}`;
             submitMsg();
