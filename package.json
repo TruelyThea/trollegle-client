@@ -4,7 +4,7 @@
   "main": "./gui/index.js",
   "version": "2.2.1",
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "blessed": "^0.1.81",
     "electron": "^8.2.5",
     "eventemitter3": "^4.0.0",
