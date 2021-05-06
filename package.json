@@ -10,7 +10,7 @@
     "eventemitter3": "^4.0.0",
     "showdown": "^1.9.1",
     "socks-proxy-agent": "^4.0.2",
-    "underscore": "^1.9.1"
+    "underscore": "^1.12.1"
   },
   "scripts": {
     "start": "electron ./gui/index.js",
